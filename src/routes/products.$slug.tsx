@@ -4,7 +4,7 @@ import { ArrowRight, Check, Minus, Plus, Star, Shield, Truck, RotateCcw, Award }
 import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
-import { getProduct, products } from "@/lib/products";
+import { getProduct, products, type Product } from "@/lib/products";
 
 export const Route = createFileRoute("/products/$slug")({
   loader: ({ params }) => {
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/products/$slug")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product } = Route.useLoaderData() as { product: Product };
   const [qty, setQty] = useState(1);
   const [showSticky, setShowSticky] = useState(false);
   const cross = products.filter((p) => p.slug !== product.slug);
