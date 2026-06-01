@@ -4,14 +4,14 @@ import { Menu, X, Search, ShoppingCart } from "lucide-react";
 
 type NavLink =
   | { to: "/"; label: string; params?: never }
-  | { to: "/shop"; label: string; params?: never }
+  | { to: "/products"; label: string; params?: never }
   | { to: "/about"; label: string; params?: never }
   | { to: "/contact"; label: string; params?: never }
   | { to: "/products/$slug"; label: string; params: { slug: string } };
 
 const navLinks: NavLink[] = [
   { to: "/", label: "Home" },
-  { to: "/shop", label: "Shop" },
+  { to: "/products", label: "Shop" },
   { to: "/products/$slug", params: { slug: "fujisan-thinning-scissors" }, label: "Fujisan Scissors" },
   { to: "/products/$slug", params: { slug: "micro-slit-scissors" }, label: "Micro Slit Scissors" },
   { to: "/about", label: "About" },
@@ -91,7 +91,7 @@ export function Header() {
             <ShoppingCart className="size-4 md:size-5" />
           </button>
           
-          <Link to="/shop" className="btn-gold hidden sm:inline-flex !py-2.5 !px-5 !text-[0.7rem]">
+          <Link to="/products" className="btn-gold hidden sm:inline-flex !py-2.5 !px-5 !text-[0.7rem]">
             Shop Now
           </Link>
           <button

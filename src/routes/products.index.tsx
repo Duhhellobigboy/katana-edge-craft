@@ -3,16 +3,16 @@ import { Layout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/site/ProductCard";
 import { products } from "@/lib/products";
 
-export const Route = createFileRoute("/shop")({
+export const Route = createFileRoute("/products/")({
   head: () => ({
     meta: [
       { title: "Shop Professional Barber Scissors & Shears | Katana Edge" },
       { name: "description", content: "Browse premium professional barber scissors and thinning shears. Fujisan Thinning Scissors and Micro Slit Scissors — engineered for working professionals." },
       { property: "og:title", content: "Shop Katana Edge Scissors" },
       { property: "og:description", content: "Premium thinning shears and micro-serrated barber scissors." },
-      { property: "og:url", content: "/shop" },
+      { property: "og:url", content: "/products" },
     ],
-    links: [{ rel: "canonical", href: "/shop" }],
+    links: [{ rel: "canonical", href: "/products" }],
   }),
   component: ShopPage,
 });

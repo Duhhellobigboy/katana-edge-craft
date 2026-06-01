@@ -305,7 +305,7 @@ function HomePage() {
             Join the professionals who trust Katana Edge every day.
           </p>
           <div className="mt-10 flex flex-wrap gap-3 justify-center">
-            <Link to="/shop" className="btn-gold">Shop Now <ArrowRight className="size-4" /></Link>
+            <Link to="/products" className="btn-gold">Shop Now <ArrowRight className="size-4" /></Link>
             <a href="tel:+13163682814" className="btn-ghost-light">Talk to a specialist</a>
           </div>
         </div>

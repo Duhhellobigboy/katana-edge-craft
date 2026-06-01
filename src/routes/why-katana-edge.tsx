@@ -75,7 +75,7 @@ function WhyPage() {
           <p className="mt-6 text-muted-foreground">
             Every Katana Edge owner gets free lifetime sharpening, professional re-tensioning, and priority support. This isn't a transaction — it's a relationship with your tool.
           </p>
-          <Link to="/shop" className="btn-gold mt-10 inline-flex">Shop the collection <ArrowRight className="size-4" /></Link>
+          <Link to="/products" className="btn-gold mt-10 inline-flex">Shop the collection <ArrowRight className="size-4" /></Link>
         </div>
       </section>
     </Layout>
