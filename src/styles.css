@@ -10,7 +10,7 @@
    ============================================================ */
 
 @theme inline {
-  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-display: "Oswald", "Inter", sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
@@ -46,48 +46,48 @@
 
 :root {
   /* Matte black / charcoal base */
-  --background: oklch(0.14 0.005 60);
-  --foreground: oklch(0.96 0.005 80);
+  --background: #0a0a0a;
+  --foreground: #ffffff;
 
-  --card: oklch(0.18 0.005 60);
-  --card-foreground: oklch(0.96 0.005 80);
-  --popover: oklch(0.16 0.005 60);
-  --popover-foreground: oklch(0.96 0.005 80);
+  --card: #1a1a1a;
+  --card-foreground: #ffffff;
+  --popover: #1a1a1a;
+  --popover-foreground: #ffffff;
 
   /* Primary = soft warm white */
-  --primary: oklch(0.96 0.005 80);
-  --primary-foreground: oklch(0.14 0.005 60);
+  --primary: #ffffff;
+  --primary-foreground: #000000;
 
-  --secondary: oklch(0.22 0.005 60);
-  --secondary-foreground: oklch(0.96 0.005 80);
+  --secondary: #242424;
+  --secondary-foreground: #ffffff;
 
-  --muted: oklch(0.22 0.005 60);
-  --muted-foreground: oklch(0.68 0.01 80);
+  --muted: #242424;
+  --muted-foreground: #a0a0a0;
 
-  --accent: oklch(0.78 0.12 82);   /* soft gold accent */
-  --accent-foreground: oklch(0.14 0.005 60);
+  --accent: #d4af37;
+  --accent-foreground: #000000;
 
   /* Brand tokens */
-  --gold: oklch(0.78 0.12 82);
-  --gold-foreground: oklch(0.14 0.005 60);
-  --silver: oklch(0.82 0.005 80);
+  --gold: #d4af37;
+  --gold-foreground: #000000;
+  --silver: #c0c0c0;
 
-  --destructive: oklch(0.55 0.2 27);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fca5a5;
 
-  --border: oklch(0.26 0.005 60);
-  --border-strong: oklch(0.36 0.005 60);
-  --input: oklch(0.26 0.005 60);
-  --ring: oklch(0.78 0.12 82);
+  --border: #242424;
+  --border-strong: #333333;
+  --input: #242424;
+  --ring: #d4af37;
 
   --radius: 4px;
 
   /* Gradients & shadows */
-  --gradient-gold: linear-gradient(135deg, oklch(0.85 0.13 85), oklch(0.7 0.12 75));
-  --gradient-fade: linear-gradient(180deg, transparent 0%, oklch(0.1 0.005 60 / 0.85) 60%, oklch(0.08 0.005 60) 100%);
-  --gradient-edge: linear-gradient(90deg, transparent, oklch(0.78 0.12 82 / 0.6), transparent);
-  --shadow-luxe: 0 30px 80px -20px oklch(0 0 0 / 0.6);
-  --shadow-gold: 0 0 60px -10px oklch(0.78 0.12 82 / 0.35);
+  --gradient-gold: linear-gradient(135deg, #FFD700, #D4AF37, #AA7C11);
+  --gradient-fade: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.85) 60%, #0a0a0a 100%);
+  --gradient-edge: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.6), transparent);
+  --shadow-luxe: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  --shadow-gold: 0 0 60px -10px rgba(212, 175, 55, 0.35);
 }
 
 @layer base {
@@ -105,8 +105,9 @@
 
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   ::selection {

@@ -154,6 +154,20 @@ function ProductPage() {
         </div>
       </section>
 
+      {/* CINEMATIC VIDEO */}
+      <section className="relative py-32 md:py-40 bg-black overflow-hidden border-y border-white/10">
+        <div className="absolute inset-0 flex items-center justify-center opacity-60">
+           <img src={product.image} className="w-full h-full object-cover blur-sm brightness-50 scale-105" alt="Cinematic video background" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center justify-center text-center container-luxe">
+           <div className="size-20 rounded-full border border-gold flex items-center justify-center bg-black/40 text-gold cursor-pointer hover:bg-gold hover:text-black transition-colors mb-8">
+             <div className="ml-1 w-0 h-0 border-t-8 border-t-transparent border-l-[12px] border-l-current border-b-8 border-b-transparent" />
+           </div>
+           <h2 className="font-display text-4xl md:text-6xl text-white">Experience <span className="text-gold italic">Precision</span></h2>
+           <p className="mt-4 text-white/70 max-w-lg">Watch the {product.name} in action with a master barber.</p>
+        </div>
+      </section>
+
       {/* BENEFITS */}
       <section className="py-20 md:py-28 bg-card border-y border-border">
         <div className="container-luxe">

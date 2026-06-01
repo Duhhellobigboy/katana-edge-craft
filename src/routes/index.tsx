@@ -59,48 +59,54 @@ function HomePage() {
   return (
     <Layout>
       {/* HERO */}
-      <section className="relative min-h-[92vh] flex items-end overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src={heroImg}
-            alt="Professional barber cutting hair with premium Katana Edge shears"
-            width={1920}
-            height={1280}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-background/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
-        </div>
-
-        <div className="container-luxe relative pb-20 md:pb-32 pt-32">
-          <div className="max-w-3xl animate-fade-up">
-            <p className="eyebrow">Precision Crafted · Professionally Trusted</p>
-            <h1 className="font-display text-5xl md:text-7xl lg:text-8xl leading-[0.95] mt-6">
-              Professional Barber Scissors
-              <span className="block text-gold italic">Built For Precision</span>
+      <section className="relative min-h-[92vh] flex items-center bg-[#0a0a0a] overflow-hidden pt-24 pb-12 lg:py-0">
+        <div className="container-luxe relative z-10 w-full grid lg:grid-cols-2 gap-12 lg:gap-8 items-center h-full">
+          {/* LEFT SIDE (TEXT) */}
+          <div className="animate-fade-up pt-12 lg:pt-20 lg:pr-8">
+            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] text-white">
+              BUILT FOR BARBERS WHO DEMAND
+              <span className="block text-gold mt-2">PRECISION.</span>
             </h1>
-            <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-              Designed for barbers and stylists who demand sharper cuts, smoother blending, and superior control on every client.
+            <p className="mt-8 text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed">
+              Professional-grade thinning and micro slit scissors engineered for flawless control, blending, and finishing.
             </p>
 
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Link to="/products/$slug" params={{ slug: "fujisan-thinning-scissors" }} className="btn-gold">
-                Shop Fujisan Thinning <ArrowRight className="size-4" />
+            <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-4">
+              <Link to="/products/$slug" params={{ slug: "fujisan-thinning-scissors" }} className="btn-gold !py-4 !px-8 !text-sm">
+                Shop Fujisan Thinning
               </Link>
-              <Link to="/products/$slug" params={{ slug: "micro-slit-scissors" }} className="btn-ghost-light">
-                Shop Micro Slit <ArrowRight className="size-4" />
+              <Link to="/products/$slug" params={{ slug: "micro-slit-scissors" }} className="btn-ghost-light !py-4 !px-8 !text-sm !text-white border-white/20 hover:border-gold hover:text-gold">
+                Shop Micro Slit
               </Link>
             </div>
 
-            <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {trustItems.map((t) => (
-                <div key={t} className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
-                  <Check className="size-4 text-gold shrink-0" />
-                  <span>{t}</span>
-                </div>
-              ))}
+            <div className="mt-14 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8 text-xs uppercase tracking-[0.15em] text-white/60">
+              <div className="flex items-center gap-3">
+                <Check className="size-4 text-gold shrink-0" />
+                <span>Professional Grade Steel</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="size-4 text-gold shrink-0" />
+                <span>Trusted by Barbers Worldwide</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="size-4 text-gold shrink-0" />
+                <span>Japanese-Inspired Craftsmanship</span>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* RIGHT SIDE (CINEMATIC VISUAL) */}
+        <div className="absolute inset-y-0 right-0 w-full lg:w-1/2 h-[50vh] lg:h-full mt-auto lg:mt-0 opacity-40 lg:opacity-100 hidden sm:block">
+          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent z-10" />
+          <img
+            src={heroImg}
+            alt="Professional barber cutting hair in a dark luxury barbershop"
+            width={1920}
+            height={1280}
+            className="w-full h-full object-cover object-center"
+          />
         </div>
       </section>
 
