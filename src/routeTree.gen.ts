@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhyKatanaEdgeRouteImport } from './routes/why-katana-edge'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -21,6 +22,11 @@ import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 const WhyKatanaEdgeRoute = WhyKatanaEdgeRouteImport.update({
   id: '/why-katana-edge',
   path: '/why-katana-edge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/reviews': typeof ReviewsRoute
   '/shop': typeof ShopRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/why-katana-edge': typeof WhyKatanaEdgeRoute
   '/products/$slug': typeof ProductsSlugRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/reviews': typeof ReviewsRoute
   '/shop': typeof ShopRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/why-katana-edge': typeof WhyKatanaEdgeRoute
   '/products/$slug': typeof ProductsSlugRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/reviews': typeof ReviewsRoute
   '/shop': typeof ShopRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/why-katana-edge': typeof WhyKatanaEdgeRoute
   '/products/$slug': typeof ProductsSlugRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/reviews'
     | '/shop'
+    | '/sitemap.xml'
     | '/why-katana-edge'
     | '/products/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/reviews'
     | '/shop'
+    | '/sitemap.xml'
     | '/why-katana-edge'
     | '/products/$slug'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/reviews'
     | '/shop'
+    | '/sitemap.xml'
     | '/why-katana-edge'
     | '/products/$slug'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   ReviewsRoute: typeof ReviewsRoute
   ShopRoute: typeof ShopRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WhyKatanaEdgeRoute: typeof WhyKatanaEdgeRoute
   ProductsSlugRoute: typeof ProductsSlugRoute
 }
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/why-katana-edge'
       fullPath: '/why-katana-edge'
       preLoaderRoute: typeof WhyKatanaEdgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -202,9 +222,20 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   ReviewsRoute: ReviewsRoute,
   ShopRoute: ShopRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   WhyKatanaEdgeRoute: WhyKatanaEdgeRoute,
   ProductsSlugRoute: ProductsSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
