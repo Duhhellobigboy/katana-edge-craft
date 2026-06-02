@@ -308,7 +308,7 @@ function ProductPage() {
               <p className="eyebrow">Pairs Perfectly With</p>
               <h2 className="font-display text-4xl md:text-5xl mt-3">Complete the set</h2>
             </div>
-            <Link to="/shop" className="hidden md:inline-flex text-sm uppercase tracking-[0.18em] text-gold hover:underline">
+            <Link to="/products" className="hidden md:inline-flex text-sm uppercase tracking-[0.18em] text-gold hover:underline">
               View all →
             </Link>
           </div>
