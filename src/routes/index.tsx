@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Shield, Sparkles, Hand, Award, Hammer, Users, Star, Quote, Lock, Globe, RotateCcw } from "lucide-react";
+import { ArrowRight, Check, Shield, Sparkles, Hand, Award, Hammer, Users, Star, Lock, Globe, RotateCcw } from "lucide-react";
+import { CircularTestimonials } from "@/components/ui/circular-testimonials";
 import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -9,8 +10,6 @@ import heroCustomImg from "@/assets/hero-custom.jpg";
 import logoImg from "@/assets/logo.jpg";
 import craftImg from "@/assets/craft-steel.jpg";
 import shopImg from "@/assets/barbershop.jpg";
-import resultsImg from "@/assets/results-blending.jpg";
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -42,10 +41,34 @@ const whyItems = [
 ];
 
 const testimonials = [
-  { name: "Marcus Vega", role: "Master Barber · Brooklyn", body: "The Fujisan is the cleanest blending shear I've ever picked up. My fades drop into place in a single pass — I'm saving five minutes per client.", rating: 5 },
-  { name: "Aiko Tanaka", role: "Stylist · Tokyo", body: "Micro Slit changed my dry-cut work. The grip on the strand is unreal — no slip, no re-cut. Like working with a scalpel.", rating: 5 },
-  { name: "Devon Hill", role: "Salon Owner · Chicago", body: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
-  { name: "Sofia Marín", role: "Stylist Educator · Madrid", body: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
+  {
+    quote:
+      "The Fujisan is the cleanest blending shear I've ever picked up. My fades drop into place in a single pass — I'm saving five minutes per client.",
+    name: "Marcus Vega",
+    designation: "Master Barber · Brooklyn",
+    src: "https://images.unsplash.com/photo-1622286342621-4bd786c244b8?q=80&w=1368&auto=format&fit=crop",
+  },
+  {
+    quote:
+      "Micro Slit changed my dry-cut work. The grip on the strand is unreal — no slip, no re-cut. Like working with a scalpel.",
+    name: "Aiko Tanaka",
+    designation: "Stylist · Tokyo",
+    src: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=1368&auto=format&fit=crop",
+  },
+  {
+    quote:
+      "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.",
+    name: "Devon Hill",
+    designation: "Salon Owner · Chicago",
+    src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1368&auto=format&fit=crop",
+  },
+  {
+    quote:
+      "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.",
+    name: "Sofia Marín",
+    designation: "Stylist Educator · Madrid",
+    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1368&auto=format&fit=crop",
+  },
 ];
 
 const faqs = [
@@ -232,39 +255,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* PROFESSIONAL RESULTS */}
-      <section className="py-24 md:py-32">
-        <div className="container-luxe">
-          <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
-            <div className="product-image-wrap aspect-[4/5]">
-              <img src={resultsImg} alt="Professional barber blending a fade with Katana Edge shears" width={1080} height={1350} loading="lazy" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <p className="eyebrow">Professional Results</p>
-              <h2 className="font-display text-4xl md:text-5xl mt-4 leading-tight">
-                The cuts speak <span className="italic text-gold">for themselves.</span>
-              </h2>
-              <p className="mt-6 text-muted-foreground leading-relaxed">
-                From invisible fade blends to surgical perimeter work, Katana Edge tools are built to give you the cuts your clients book you for — and the consistency that keeps them coming back.
-              </p>
-              <div className="mt-10 space-y-px bg-border">
-                {[
-                  { label: "Blending", value: "Single-pass fade transitions" },
-                  { label: "Texturizing", value: "Calibrated weight removal" },
-                  { label: "Thinning", value: "Soft, invisible reduction" },
-                  { label: "Precision Finishing", value: "Razor-clean perimeter lines" },
-                ].map((r) => (
-                  <div key={r.label} className="bg-background flex items-center justify-between py-4">
-                    <span className="font-display text-xl">{r.label}</span>
-                    <span className="text-sm text-muted-foreground">{r.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CRAFTSMANSHIP */}
       <section className="relative py-32 md:py-40 overflow-hidden">
         <div className="absolute inset-0">
@@ -308,22 +298,27 @@ function HomePage() {
             <p className="eyebrow">Trusted By Professionals</p>
             <h2 className="font-display text-4xl md:text-6xl mt-4">What the chair says</h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {testimonials.map((t) => (
-              <figure key={t.name} className="luxe-card p-8 md:p-10 relative">
-                <Quote className="absolute top-6 right-6 size-8 text-gold/20" />
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="size-4 fill-gold text-gold" />
-                  ))}
-                </div>
-                <blockquote className="font-display text-xl md:text-2xl leading-snug">"{t.body}"</blockquote>
-                <figcaption className="mt-6 pt-6 border-t border-border">
-                  <p className="font-medium">{t.name}</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] mt-1">{t.role}</p>
-                </figcaption>
-              </figure>
-            ))}
+          <div
+            className="relative mx-auto flex items-center justify-center"
+            style={{ maxWidth: "1024px" }}
+          >
+            <CircularTestimonials
+              testimonials={testimonials}
+              autoplay={true}
+              colors={{
+                name: "#f7f7ff",
+                designation: "#e1e1e1",
+                testimony: "#f1f1f7",
+                arrowBackground: "#d4af37",
+                arrowForeground: "#141414",
+                arrowHoverBackground: "#f7f7ff",
+              }}
+              fontSizes={{
+                name: "28px",
+                designation: "20px",
+                quote: "20px",
+              }}
+            />
           </div>
         </div>
       </section>
