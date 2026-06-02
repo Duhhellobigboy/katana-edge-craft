@@ -1,28 +1,25 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Search, ShoppingCart } from "lucide-react";
+import { Menu, X, Search, ShoppingCart, User } from "lucide-react";
+import logoImg from "@/assets/logo.jpg";
 
-type NavLink =
-  | { to: "/"; label: string; params?: never }
-  | { to: "/products"; label: string; params?: never }
-  | { to: "/about"; label: string; params?: never }
-  | { to: "/contact"; label: string; params?: never }
-  | { to: "/products/$slug"; label: string; params: { slug: string } };
+type NavLink = {
+  to: "/" | "/products" | "/about" | "/contact";
+  label: string;
+};
 
 const navLinks: NavLink[] = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Shop" },
-  { to: "/products/$slug", params: { slug: "fujisan-thinning-scissors" }, label: "Fujisan Scissors" },
-  { to: "/products/$slug", params: { slug: "micro-slit-scissors" }, label: "Micro Slit Scissors" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
 
 const tickerMessages = [
-  { text: "PRECISION CUTTING • PROFESSIONAL BARBER SHEARS • JAPANESE STEEL", color: "text-white" },
-  { text: "FUJISAN THINNING SCISSORS • MICRO SLIT TECHNOLOGY • ELITE BARBERS ONLY", color: "text-gold" },
-  { text: "BUILT FOR BARBERS WHO DEMAND CONTROL • SHARPER. CLEANER. FASTER.", color: "text-white" },
-  { text: "KATANA EDGE • PROFESSIONAL GROOMING TOOLS • WORLDWIDE SHIPPING", color: "text-gold" },
+  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-white" },
+  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-gold" },
+  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-white" },
+  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-gold" },
 ];
 
 export function Header() {
@@ -59,48 +56,58 @@ export function Header() {
         </div>
       </div>
 
-      <div className="container-luxe flex items-center justify-between h-16 md:h-20">
-        <Link to="/" className="flex items-center gap-2 group">
-          <span className="font-display text-xl md:text-2xl tracking-tight text-white">
-            Katana<span className="text-gold">·</span>Edge
-          </span>
-        </Link>
-
-        {/* CENTER NAV */}
-        <nav className="hidden lg:flex items-center gap-8">
-          {navLinks.map((l) => (
-            <Link
-              key={l.label}
-              to={l.to}
-              params={l.params as any}
-              className="text-xs uppercase tracking-[0.18em] text-white hover:text-gold transition-colors"
-              activeProps={{ className: "text-gold" }}
-              activeOptions={{ exact: l.to === "/" }}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* RIGHT ACTIONS */}
-        <div className="flex items-center gap-4 md:gap-6">
-          <button className="text-white hover:text-gold transition-colors" aria-label="Search">
-            <Search className="size-4 md:size-5" />
-          </button>
-          <button className="text-white hover:text-gold transition-colors" aria-label="Cart">
-            <ShoppingCart className="size-4 md:size-5" />
-          </button>
-          
-          <Link to="/products" className="btn-gold hidden sm:inline-flex !py-2.5 !px-5 !text-[0.7rem]">
-            Shop Now
-          </Link>
+      <div className="container-luxe grid grid-cols-3 items-center h-16 md:h-20">
+        {/* LEFT NAV (DESKTOP) & MOBILE MENU TOGGLE */}
+        <div className="flex items-center justify-start">
+          <nav className="hidden lg:flex items-center gap-6">
+            {navLinks.map((l) => (
+              <Link
+                key={l.label}
+                to={l.to}
+                className="text-[0.68rem] uppercase tracking-[0.15em] text-white hover:text-gold transition-colors whitespace-nowrap"
+                activeProps={{ className: "text-gold" }}
+                activeOptions={{ exact: l.to === "/" }}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
           <button
-            className="lg:hidden p-2 -mr-2 text-white"
+            className="lg:hidden p-2 -ml-2 text-white hover:text-gold transition-colors"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
+        </div>
+
+        {/* CENTER LOGO */}
+        <div className="flex items-center justify-center">
+          <Link to="/" className="flex items-center justify-center group py-2">
+            <img
+              src={logoImg}
+              alt="Katana Edge Logo"
+              className="h-10 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              style={{ filter: "invert(1) brightness(1.2)", mixBlendMode: "screen" }}
+            />
+          </Link>
+        </div>
+
+        {/* RIGHT ACTIONS */}
+        <div className="flex items-center justify-end gap-3 md:gap-6">
+          <button className="text-white hover:text-gold transition-colors font-semibold" aria-label="Search">
+            <Search className="size-4 md:size-5" />
+          </button>
+          <button className="text-white hover:text-gold transition-colors" aria-label="Account">
+            <User className="size-4 md:size-5" />
+          </button>
+          <button className="text-white hover:text-gold transition-colors" aria-label="Cart">
+            <ShoppingCart className="size-4 md:size-5" />
+          </button>
+          
+          <Link to="/products" className="btn-gold hidden sm:inline-flex !py-2 !px-4 md:!py-2.5 md:!px-5 !text-[0.65rem] tracking-[0.15em] font-semibold">
+            Shop Now
+          </Link>
         </div>
       </div>
 
@@ -112,7 +119,6 @@ export function Header() {
               <Link
                 key={l.label}
                 to={l.to}
-                params={l.params as any}
                 onClick={() => setOpen(false)}
                 className="text-sm uppercase tracking-[0.18em] text-white hover:text-gold py-2"
                 activeProps={{ className: "text-gold" }}

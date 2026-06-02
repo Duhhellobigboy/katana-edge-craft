@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
-export function LeadForm({ variant = "inline" }: { variant?: "inline" | "footer" | "compact" }) {
-  const isFooter = variant === "footer";
+export function LeadForm({ variant = "inline" }: { variant?: "inline" | "compact" }) {
   const isCompact = variant === "compact";
 
   useEffect(() => {
@@ -17,13 +16,8 @@ export function LeadForm({ variant = "inline" }: { variant?: "inline" | "footer"
 
   return (
     <section
-      className={
-        isFooter
-          ? "relative py-24 md:py-32 border-t border-border bg-gradient-to-b from-background to-card"
-          : isCompact
-          ? "py-12"
-          : "py-20 md:py-28"
-      }
+      id={isCompact ? "contact" : undefined}
+      className={isCompact ? "scroll-mt-28 py-12" : "py-20 md:py-28"}
     >
       <div className="container-luxe">
         <div className="max-w-4xl mx-auto text-center">

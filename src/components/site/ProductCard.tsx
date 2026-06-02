@@ -2,14 +2,20 @@ import { Link } from "@tanstack/react-router";
 import { Star, ArrowUpRight } from "lucide-react";
 import type { Product } from "@/lib/products";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  compact = false,
+}: {
+  product: Product;
+  compact?: boolean;
+}) {
   return (
     <Link
       to="/products/$slug"
       params={{ slug: product.slug }}
       className="group luxe-card block overflow-hidden"
     >
-      <div className="product-image-wrap aspect-[4/5]">
+      <div className={compact ? "product-image-wrap aspect-[3/4]" : "product-image-wrap aspect-[4/5]"}>
         <img
           src={product.image}
           alt={`${product.name} — ${product.tagline}`}
@@ -26,8 +32,8 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
       </div>
-      <div className="p-6 md:p-8">
-        <div className="flex items-center gap-1 mb-3">
+      <div className={compact ? "p-5 md:p-6" : "p-6 md:p-8"}>
+        <div className={`flex items-center gap-1 ${compact ? "mb-2.5" : "mb-3"}`}>
           {Array.from({ length: 5 }).map((_, i) => (
             <Star key={i} className="size-3.5 fill-gold text-gold" />
           ))}
@@ -35,12 +41,22 @@ export function ProductCard({ product }: { product: Product }) {
             {product.rating} · {product.reviewCount.toLocaleString()} reviews
           </span>
         </div>
-        <h3 className="font-display text-2xl md:text-3xl leading-tight">{product.name}</h3>
+        <h3
+          className={
+            compact
+              ? "font-display text-xl md:text-2xl leading-tight"
+              : "font-display text-2xl md:text-3xl leading-tight"
+          }
+        >
+          {product.name}
+        </h3>
         <p className="mt-2 text-sm text-muted-foreground">{product.tagline}</p>
 
-        <div className="mt-5 flex items-end justify-between">
+        <div className={`flex items-end justify-between ${compact ? "mt-4" : "mt-5"}`}>
           <div className="flex items-baseline gap-3">
-            <span className="font-display text-2xl">${product.price}</span>
+            <span className={compact ? "font-display text-xl md:text-2xl" : "font-display text-2xl"}>
+              ${product.price}
+            </span>
             {product.compareAt && (
               <span className="text-sm text-muted-foreground line-through">${product.compareAt}</span>
             )}

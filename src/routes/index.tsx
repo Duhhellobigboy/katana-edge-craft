@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Shield, Sparkles, Hand, Award, Hammer, Users, Star, Quote } from "lucide-react";
+import { ArrowRight, Check, Shield, Sparkles, Hand, Award, Hammer, Users, Star, Quote, Lock, Globe, RotateCcw } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
 import { products } from "@/lib/products";
 import heroImg from "@/assets/hero-barber.jpg";
+import heroCustomImg from "@/assets/hero-custom.jpg";
+import logoImg from "@/assets/logo.jpg";
 import craftImg from "@/assets/craft-steel.jpg";
 import shopImg from "@/assets/barbershop.jpg";
 import resultsImg from "@/assets/results-blending.jpg";
@@ -59,54 +61,114 @@ function HomePage() {
   return (
     <Layout>
       {/* HERO */}
-      <section className="relative min-h-[92vh] flex items-center bg-[#0a0a0a] overflow-hidden pt-24 pb-12 lg:py-0">
-        <div className="container-luxe relative z-10 w-full grid lg:grid-cols-2 gap-12 lg:gap-8 items-center h-full">
-          {/* LEFT SIDE (TEXT) */}
-          <div className="animate-fade-up pt-12 lg:pt-20 lg:pr-8">
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] text-white">
-              BUILT FOR BARBERS WHO DEMAND
-              <span className="block text-gold mt-2">PRECISION.</span>
-            </h1>
-            <p className="mt-8 text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed">
-              Professional-grade thinning and micro slit scissors engineered for flawless control, blending, and finishing.
-            </p>
-
-            <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-4">
-              <Link to="/products/$slug" params={{ slug: "fujisan-thinning-scissors" }} className="btn-gold !py-4 !px-8 !text-sm">
-                Shop Fujisan Thinning
-              </Link>
-              <Link to="/products/$slug" params={{ slug: "micro-slit-scissors" }} className="btn-ghost-light !py-4 !px-8 !text-sm !text-white border-white/20 hover:border-gold hover:text-gold">
-                Shop Micro Slit
-              </Link>
+      <section className="relative min-h-[95vh] flex items-center bg-[#0a0a0a] overflow-hidden pt-28 pb-16 lg:py-24">
+        <div className="container-luxe relative z-10 w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center h-full">
+          {/* LEFT SIDE (TEXT & CTA) */}
+          <div className="animate-fade-up pt-8 lg:pt-12 lg:pr-4 flex flex-col justify-center">
+            {/* Professional Barber Rating / Avatar Group */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex -space-x-2">
+                {[
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100&h=100",
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100",
+                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100&h=100",
+                  "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=100&h=100",
+                ].map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt="Barber avatar"
+                    className="size-8 rounded-full border border-black object-cover"
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold text-white tracking-wide">4.9 / 5</span>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="size-3 fill-gold text-gold" />
+                  ))}
+                </div>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest ml-1 hidden sm:inline">10K+ Barbers Globally</span>
+              </div>
             </div>
 
-            <div className="mt-14 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8 text-xs uppercase tracking-[0.15em] text-white/60">
-              <div className="flex items-center gap-3">
-                <Check className="size-4 text-gold shrink-0" />
-                <span>Professional Grade Steel</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="size-4 text-gold shrink-0" />
-                <span>Trusted by Barbers Worldwide</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="size-4 text-gold shrink-0" />
-                <span>Japanese-Inspired Craftsmanship</span>
+            {/* Headline */}
+            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.2rem] leading-[0.9] text-white tracking-tight uppercase">
+              BUILT FOR BARBERS
+              <span className="block mt-2">
+                WHO <span className="font-accent text-gold lowercase text-6xl sm:text-7xl md:text-8xl lg:text-[5.8rem] xl:text-[6.5rem] ml-1 mr-2 inline-block -rotate-2 hover:rotate-0 transition-transform duration-300">cut</span> TO WIN.
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="mt-6 text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed">
+              Elite thinning and micro slit scissors for cleaner control, smoother blends, and sharper finishes.
+            </p>
+
+            {/* Streetwear Shop Button */}
+            <div className="mt-8">
+              <Link
+                to="/products"
+                className="inline-flex items-center justify-between bg-black border border-white/20 hover:border-gold px-6 py-4 transition-all duration-300 group gap-5 w-full sm:w-auto"
+              >
+                <span className="text-xs uppercase tracking-[0.25em] font-bold text-white group-hover:text-gold transition-colors">
+                  SHOP THE STORE
+                </span>
+                <div className="h-6 w-px bg-white/10" />
+                <img
+                  src={logoImg}
+                  alt="Katana Edge Badge"
+                  className="h-8 w-auto object-contain"
+                  style={{ filter: "invert(1) brightness(1.2)", mixBlendMode: "screen" }}
+                />
+              </Link>
+
+              {/* Security & shipping trust labels */}
+              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-[10px] uppercase tracking-[0.18em] text-white/50">
+                <div className="flex items-center gap-2">
+                  <Lock className="size-3.5 text-gold" />
+                  <span>SECURE CHECKOUT</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="size-3.5 text-gold" />
+                  <span>WORLDWIDE SHIPPING</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="size-3.5 text-gold" />
+                  <span>EASY RETURNS</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* RIGHT SIDE (CINEMATIC VISUAL) */}
-        <div className="absolute inset-y-0 right-0 w-full lg:w-1/2 h-[50vh] lg:h-full mt-auto lg:mt-0 opacity-40 lg:opacity-100 hidden sm:block">
-          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent z-10" />
-          <img
-            src={heroImg}
-            alt="Professional barber cutting hair in a dark luxury barbershop"
-            width={1920}
-            height={1280}
-            className="w-full h-full object-cover object-center"
-          />
+          {/* RIGHT SIDE (CRAFTSMAN VISUAL & LIVE REVIEW OVERLAY) */}
+          <div className="relative animate-fade-up lg:h-[75vh] flex items-center justify-center">
+            <div className="relative w-full aspect-[4/5] lg:h-full lg:w-auto max-h-[640px] overflow-hidden rounded-sm border border-white/5 group shadow-2xl">
+              {/* Dark overlay gradients */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent opacity-85 z-10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent z-10" />
+              <img
+                src={heroCustomImg}
+                alt="Katana Edge custom craftsman in front of manufacturing facility"
+                className="w-full h-full object-cover object-center transition-transform duration-[2000ms] group-hover:scale-103"
+                loading="eager"
+              />
+
+              {/* Floating Testimonial Overlay - TOPG-style */}
+              <div className="absolute top-6 left-6 right-6 z-20 bg-black/85 backdrop-blur-md border border-white/10 p-5 rounded-sm shadow-xl transition-all duration-300 hover:border-gold/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="size-6 rounded-full bg-gold/15 flex items-center justify-center border border-gold/30">
+                    <span className="text-[10px] font-bold text-gold">M</span>
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">MARCUS V.</span>
+                </div>
+                <p className="text-[11px] md:text-xs text-white/80 italic leading-relaxed font-sans">
+                  "These scissors are unreal. Razor sharp, perfect balance, and they don't slip. Best investment I've made for my chair in years."
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -138,9 +200,9 @@ function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="mx-auto grid max-w-lg gap-6 sm:max-w-4xl md:grid-cols-2 md:gap-7 lg:max-w-5xl">
             {products.map((p) => (
-              <ProductCard key={p.slug} product={p} />
+              <ProductCard key={p.slug} product={p} compact />
             ))}
           </div>
         </div>
