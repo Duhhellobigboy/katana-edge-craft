@@ -5,6 +5,8 @@ import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
 import { getProduct, products, type Product } from "@/lib/products";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/products/$slug")({
   loader: ({ params }) => {
@@ -53,6 +55,7 @@ function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
   const [qty, setQty] = useState(1);
   const [showSticky, setShowSticky] = useState(false);
+  const { addItem } = useCart();
   const cross = products.filter((p) => p.slug !== product.slug);
 
   useEffect(() => {
@@ -119,7 +122,18 @@ function ProductPage() {
                 <span className="w-12 text-center font-display text-lg">{qty}</span>
                 <button onClick={() => setQty(qty + 1)} className="size-12 flex items-center justify-center hover:bg-secondary"><Plus className="size-4" /></button>
               </div>
-              <button className="btn-gold flex-1">
+              <button
+                className="btn-gold flex-1"
+                onClick={() => {
+                  addItem({
+                    slug: product.slug,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                  }, qty);
+                  toast.success(`Added ${qty} × ${product.name} to cart`);
+                }}
+              >
                 Add To Cart — ${product.price * qty}
                 <ArrowRight className="size-4" />
               </button>
@@ -329,7 +343,20 @@ function ProductPage() {
                 <p className="text-xs text-muted-foreground">${product.price}</p>
               </div>
             </div>
-            <button className="btn-gold !py-3">Add To Cart <ArrowRight className="size-4" /></button>
+            <button
+              className="btn-gold !py-3"
+              onClick={() => {
+                addItem({
+                  slug: product.slug,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image,
+                }, 1);
+                toast.success(`Added ${product.name} to cart`);
+              }}
+            >
+              Add To Cart <ArrowRight className="size-4" />
+            </button>
           </div>
         </div>
       )}

@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, Search, ShoppingCart, User } from "lucide-react";
 import logoImg from "@/assets/logo.jpg";
+import { useCart } from "@/hooks/useCart";
+import { CartDrawer } from "@/components/site/CartDrawer";
 
 type NavLink = {
   to: "/" | "/products" | "/about" | "/contact";
@@ -25,6 +27,8 @@ const tickerMessages = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -98,11 +102,20 @@ export function Header() {
           <button className="text-white hover:text-gold transition-colors font-semibold" aria-label="Search">
             <Search className="size-4 md:size-5" />
           </button>
-          <button className="text-white hover:text-gold transition-colors" aria-label="Account">
+          <Link to="/checkout" className="text-white hover:text-gold transition-colors" aria-label="Account">
             <User className="size-4 md:size-5" />
-          </button>
-          <button className="text-white hover:text-gold transition-colors" aria-label="Cart">
+          </Link>
+          <button
+            className="text-white hover:text-gold transition-colors relative"
+            aria-label="Cart"
+            onClick={() => setCartOpen(true)}
+          >
             <ShoppingCart className="size-4 md:size-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-gold text-gold-foreground size-4 rounded-full text-[0.6rem] font-bold flex items-center justify-center animate-fade-in">
+                {cartCount}
+              </span>
+            )}
           </button>
           
           <Link to="/products" className="btn-gold hidden sm:inline-flex !py-2 !px-4 md:!py-2.5 md:!px-5 !text-[0.65rem] tracking-[0.15em] font-semibold">
@@ -130,6 +143,7 @@ export function Header() {
           </nav>
         </div>
       )}
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </header>
   );
 }
