@@ -12,7 +12,7 @@ Implementation guide for the **Apply → Stripe Checkout → Success → Webhook
 
 | Check | Result |
 |-------|--------|
-| **GitHub MCP** | **Not connected** in this workspace. No GitHub MCP server in Cursor MCP config. `gh` CLI is **not installed** (`command not found`). Git remote exists: `https://github.com/Duhhellobigboy/katana-edge-craft.git`. A `ghcr.io/github/github-mcp-server` Docker image is present locally but is **not wired** to this project. |
+| **GitHub MCP** | **Not connected** in this workspace. No GitHub MCP server in Cursor MCP config. `gh` CLI is **installed** (`/opt/homebrew/bin/gh`) but **not authenticated** (`gh auth login` required). Git remote: `https://github.com/Duhhellobigboy/katana-edge-craft.git`. Live issues (2026-06-05): **#1** open (product pages); **no Sentry issue** — create **Issue 14** below. |
 | **Stripe MCP** | **Not available.** No Stripe MCP server in workspace MCP folder. `stripe` CLI is **not installed**. Stripe work must use Dashboard + manual CLI install. |
 | **Supabase MCP** | **Connected** (OAuth authenticated). Project `iwvsohxgebazsqspvpxk` — `ACTIVE_HEALTHY`, Postgres 17, region `us-west-2`. |
 | **Local dev** | **Runs.** `npm run dev` → Vite ready at **`http://localhost:8080/`** (not 5173). `GET /` and `GET /checkout` return **200**. |
@@ -261,6 +261,12 @@ VITE_SITE_URL=http://localhost:8080
 
 # AUTOMATION
 N8N_WEBHOOK_URL=PASTE_N8N_WEBHOOK_URL_HERE
+
+# CALENDLY (inline embed — client-safe)
+VITE_CALENDLY_URL=https://calendly.com/dadadaad81/30min
+VITE_BRAND_PRIMARY=#D4AF37
+VITE_BRAND_TEXT=#FFFFFF
+VITE_BRAND_BG=#050505
 ```
 
 ### Server-only vs client-safe
@@ -276,6 +282,10 @@ N8N_WEBHOOK_URL=PASTE_N8N_WEBHOOK_URL_HERE
 | `STRIPE_PRICE_ID` | **No** | Server function when creating Checkout Session |
 | `VITE_SITE_URL` | Yes | Redirect URLs (also read server-side via `process.env`) |
 | `N8N_WEBHOOK_URL` | **No** | Webhook handler only |
+| `VITE_CALENDLY_URL` | Yes | `src/lib/calendly.ts`, `CalendlyEmbed` inline widget |
+| `VITE_BRAND_PRIMARY` | Yes | `LeadForm` wrapper accent (optional) |
+| `VITE_BRAND_TEXT` | Yes | `LeadForm` heading color (optional) |
+| `VITE_BRAND_BG` | Yes | `LeadForm` section background (optional) |
 
 ### Acceptance criteria
 
@@ -551,6 +561,79 @@ Existing `createStripeCheckoutSession` is **cart + auth** oriented. Prefer a ded
 
 ---
 
+## Issue 14: Set Up Sentry Error Monitoring
+
+**GitHub:** Create on repo if missing — title: `Set up Sentry error monitoring`. Close when checklist is complete.
+
+**Goal:** Capture client and server errors in production (and optionally dev) via Sentry, with source maps on Vercel.
+
+**Current state (2026-06-05):**
+
+- `@sentry/react` **already in** `package.json` — **not initialized** in app entry.
+- `src/lib/error-capture.ts` — local error buffer for Nitro/h3; can be bridged to Sentry.
+- `.env` may include `SENTRY_AUTH_TOKEN` for CI/source-map upload — **no `VITE_SENTRY_DSN`** wired yet.
+- Sentry project platform: **React** (matches TanStack Start client bundle).
+
+### Checklist
+
+- [ ] Create Sentry project (platform: **React**) for `katana-edge-craft`.
+- [ ] Add env vars locally and on Vercel:
+  - [ ] `VITE_SENTRY_DSN` (public DSN for browser)
+  - [ ] `SENTRY_AUTH_TOKEN` (source maps / releases — server/CI only)
+  - [ ] `SENTRY_ORG` / `SENTRY_PROJECT` if using Sentry Vite plugin
+- [ ] Initialize `@sentry/react` in client entry (e.g. `src/main.tsx` or router root) with environment-aware `enabled` (off or sampled in dev).
+- [ ] Wrap app with `Sentry.ErrorBoundary` or equivalent for React render errors.
+- [ ] Optionally add **Node/Nitro** Sentry for API routes (`create-checkout-session`, `stripe-webhook`) — `@sentry/node` or Vercel integration.
+- [ ] Wire `consumeLastCapturedError()` / server handlers to `Sentry.captureException` where appropriate.
+- [ ] Configure Vite/Sentry plugin for **source map upload** on production builds.
+- [ ] Connect **Vercel ↔ Sentry** integration (releases, env sync).
+- [ ] Verify: trigger test error in browser → appears in Sentry Issues.
+- [ ] Verify: API route error (test mode) → appears if server SDK enabled.
+- [ ] Confirm no secret tokens in `VITE_*` or client bundle.
+
+### Create this issue on GitHub (after `gh auth login`)
+
+```bash
+gh auth login
+gh issue create --repo Duhhellobigboy/katana-edge-craft \
+  --title "Set up Sentry error monitoring" \
+  --label "enhancement" \
+  --body "$(cat <<'EOF'
+## Goal
+Set up Sentry for client (and optionally server) error monitoring on katana-edge-craft.
+
+## Current state
+- `@sentry/react` is in package.json but not initialized
+- `src/lib/error-capture.ts` exists for Nitro error recovery
+- `SENTRY_AUTH_TOKEN` may be in `.env`; DSN not wired yet
+
+## Checklist
+- [ ] Create Sentry project (React)
+- [ ] Add `VITE_SENTRY_DSN` (+ `SENTRY_AUTH_TOKEN`, org/project) to `.env` and Vercel
+- [ ] Initialize Sentry in client entry with dev/prod sampling
+- [ ] Error boundary for React
+- [ ] Optional: Nitro/API route Sentry (`@sentry/node` or Vercel integration)
+- [ ] Source maps on production build
+- [ ] Vercel ↔ Sentry integration
+- [ ] Test: browser + API errors appear in Sentry
+- [ ] No secrets in client env
+
+## Reference
+See `GITHUB_ISSUES_GUIDE.md` → Issue 14.
+
+Close this issue when Sentry is fully wired and verified in production/preview.
+EOF
+)"
+```
+
+### Acceptance criteria
+
+- Production/preview errors visible in Sentry with readable stack traces (source maps).
+- DSN and auth token handling follow same pattern as other secrets (`VITE_*` public only).
+- Issue closed after smoke test on deployed preview.
+
+---
+
 ## Implementation Order (Suggested)
 
 > **Superseded by [Exact implementation order (revised — post-audit)](#exact-implementation-order-revised--post-audit)** in the Pre-Implementation Audit section. Do not start Issue 5–13 until schema alignment and Stripe env vars are complete.
@@ -573,3 +656,5 @@ Existing `createStripeCheckoutSession` is **cart + auth** oriented. Prefer a ded
 | Dialog UI | `src/components/ui/dialog.tsx` |
 | Homepage | `src/routes/index.tsx` |
 | Prior docs | `implementation/STRIPE.md`, `implementation/IMPLEMENTATION_CHECKOUT.md` |
+| Error capture (pre-Sentry) | `src/lib/error-capture.ts` |
+| Sentry guide | `GITHUB_ISSUES_GUIDE.md` → Issue 14 |

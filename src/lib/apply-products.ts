@@ -13,14 +13,16 @@ export type ApplyProduct = {
 export const APPLY_PRODUCTS: ApplyProduct[] = [
   {
     key: "microslit",
-    name: "Micro Slit Shears — L Thumb",
-    priceDisplay: "$1,300",
-    description: "Professional precision shears for advanced cutting control.",
+    name: "Micro Slit",
+    priceDisplay: "$1,099.99",
+    description:
+      "Patent-protected shears designed for stable, precise dry and wet hair cutting.",
   },
   {
     key: "fujisan",
-    name: "Fujisan Thinning Shears",
+    name: "Fujisan",
     priceDisplay: "$859.99",
-    description: "Premium thinning shears for blending, softening, and texture work.",
+    description:
+      "Premium thinning shears built for smooth blending, clean movement, and healthier results.",
   },
 ];

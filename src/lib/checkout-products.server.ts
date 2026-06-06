@@ -15,12 +15,12 @@ function getProducts(): Record<CheckoutProductKey, CheckoutProductConfig> {
 
   return {
     microslit: {
-      name: "Micro Slit Shears — L Thumb",
+      name: "Micro Slit",
       priceId: process.env.STRIPE_MICROSLIT_PRICE_ID ?? "",
       productId: process.env.STRIPE_MICROSLIT_PRODUCT_ID,
     },
     fujisan: {
-      name: "Fujisan Thinning Shears",
+      name: "Fujisan",
       priceId: process.env.STRIPE_FUJISAN_PRICE_ID ?? "",
       productId: process.env.STRIPE_FUJISAN_PRODUCT_ID,
     },

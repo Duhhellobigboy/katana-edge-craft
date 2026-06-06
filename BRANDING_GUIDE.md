@@ -289,8 +289,8 @@ Product cards use the `.luxe-card` pattern with `.product-image-wrap` for imager
 
 | Product key | Display name | Slug | Price |
 |-------------|--------------|------|-------|
-| `fujisan` | Fujisan Thinning Shears | `fujisan-thinning-scissors` | $189 |
-| `microslit` | Micro Slit Shears — L Thumb | `micro-slit-scissors` | $219 |
+| `fujisan` | Fujisan | `fujisan-thinning-shears` | $859.99 |
+| `microslit` | Micro Slit | `micro-slit-shears` | $1,099.99 |
 
 ### Copy tone for descriptions
 

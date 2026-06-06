@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Search, ShoppingCart, User } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import logoImg from "@/assets/logo.jpg";
 import { useCart } from "@/hooks/useCart";
 import { CartDrawer } from "@/components/site/CartDrawer";
@@ -98,18 +98,9 @@ export function Header() {
         </div>
 
         {/* RIGHT ACTIONS */}
-        <div className="flex items-center justify-end gap-3 md:gap-6">
-          <button className="text-white hover:text-gold transition-colors font-semibold" aria-label="Search">
-            <Search className="size-4 md:size-5" />
-          </button>
+        <div className="flex items-center justify-end">
           <button
             type="button"
-            className="text-white hover:text-gold transition-colors"
-            aria-label="Account"
-          >
-            <User className="size-4 md:size-5" />
-          </button>
-          <button
             className="text-white hover:text-gold transition-colors relative"
             aria-label="Cart"
             onClick={() => setCartOpen(true)}
@@ -121,10 +112,6 @@ export function Header() {
               </span>
             )}
           </button>
-          
-          <Link to="/products" className="btn-gold hidden sm:inline-flex !py-2 !px-4 md:!py-2.5 md:!px-5 !text-[0.65rem] tracking-[0.15em] font-semibold">
-            Apply Now
-          </Link>
         </div>
       </div>
 

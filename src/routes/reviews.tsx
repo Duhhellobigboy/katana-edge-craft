@@ -16,8 +16,9 @@ export const Route = createFileRoute("/reviews")({
 });
 
 const reviews = [
-  { name: "Marcus Vega", role: "Master Barber · Brooklyn", body: "The Fujisan is the cleanest blending shear I've ever picked up. My fades drop into place in a single pass.", rating: 5 },
-  { name: "Aiko Tanaka", role: "Stylist · Tokyo", body: "Micro Slit changed my dry-cut work. The grip on the strand is unreal — no slip, no re-cut. Like working with a scalpel.", rating: 5 },
+  { name: "Marcus Vega", role: "Master Barber · Brooklyn", body: "Fujisan delivers the cleanest blending I've used. My fades drop into place in a single pass.", rating: 5 },
+  { name: "Brenna", role: "Ame Salon", body: "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability.", rating: 5 },
+  { name: "Laura Wright", role: "Laura Studio", body: "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.", rating: 5 },
   { name: "Devon Hill", role: "Salon Owner · Chicago", body: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
   { name: "Sofia Marín", role: "Stylist Educator · Madrid", body: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
   { name: "James Okafor", role: "Barber · London", body: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5 },

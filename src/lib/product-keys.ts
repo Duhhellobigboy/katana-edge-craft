@@ -4,7 +4,11 @@ export const MAX_CHECKOUT_QUANTITY = 20;
 
 /** Maps shop cart slugs to server checkout product keys. */
 export const SLUG_TO_PRODUCT_KEY: Record<string, ApplyProductKey> = {
+  "micro-slit-shears": "microslit",
+  /** @deprecated Legacy cart slug — kept so existing carts still checkout. */
   "micro-slit-scissors": "microslit",
+  "fujisan-thinning-shears": "fujisan",
+  /** @deprecated Legacy cart slug — kept so existing carts still checkout. */
   "fujisan-thinning-scissors": "fujisan",
 };
 

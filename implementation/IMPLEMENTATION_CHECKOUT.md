@@ -172,7 +172,7 @@ Once the order is successfully written to the database during the Stripe Webhook
   "items": [
     {
       "productSlug": "fujisan-thinning-scissors",
-      "productName": "Fujisan Thinning Scissors",
+      "productName": "Fujisan",
       "quantity": 1,
       "unitPrice": 18900
     }

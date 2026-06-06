@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Star, ArrowUpRight } from "lucide-react";
-import type { Product } from "@/lib/products";
+import { formatProductPrice, type Product } from "@/lib/products";
 
 export function ProductCard({
   product,
@@ -50,12 +50,12 @@ export function ProductCard({
         >
           {product.name}
         </h3>
-        <p className="mt-2 text-sm text-muted-foreground">{product.tagline}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{product.shortDescription}</p>
 
         <div className={`flex items-end justify-between ${compact ? "mt-4" : "mt-5"}`}>
           <div className="flex items-baseline gap-3">
             <span className={compact ? "font-display text-xl md:text-2xl" : "font-display text-2xl"}>
-              ${product.price}
+              {formatProductPrice(product.price)}
             </span>
             {product.compareAt && (
               <span className="text-sm text-muted-foreground line-through">${product.compareAt}</span>

@@ -1,105 +1,104 @@
-import fujisanImg from "@/assets/product-fujisan.jpg";
-import microslitImg from "@/assets/product-microslit.jpg";
+import fujisanImg1 from "@/assets/fujisan/fujisan-1.png";
+import fujisanImg2 from "@/assets/fujisan/fujisan-2.png";
+import fujisanImg3 from "@/assets/fujisan/fujisan-3.png";
+import fujisanImg4 from "@/assets/fujisan/fujisan-4.png";
+import fujisanVideo from "@/assets/fujisan/fujisan.mp4";
+import microslitImg1 from "@/assets/microslit/microslit-1.png";
+import microslitImg2 from "@/assets/microslit/microslit-2.png";
+import microslitImg3 from "@/assets/microslit/microslit-3.png";
+import microslitImg4 from "@/assets/microslit/microslit-4.png";
+import microslitVideo from "@/assets/microslit/microslit.mp4";
+
+export type ProductTestimonial = {
+  quote: string;
+  name: string;
+  role: string;
+};
 
 export type Product = {
-  slug: "fujisan-thinning-scissors" | "micro-slit-scissors";
+  slug: "fujisan-thinning-shears" | "micro-slit-shears";
   name: string;
+  sku?: string;
   tagline: string;
   price: number;
   compareAt?: number;
   image: string;
+  /** Extra gallery images for the product detail page only. */
+  gallery?: string[];
+  /** Optional product video for the detail page gallery. */
+  video?: string;
   rating: number;
   reviewCount: number;
   shortDescription: string;
   longDescription: string;
-  features: { title: string; description: string }[];
-  benefits: { title: string; description: string }[];
-  useCases: string[];
-  specs: { label: string; value: string }[];
-  faq: { q: string; a: string }[];
+  shippingHandling: string;
+  returnPolicy: string;
+  warranty: string;
+  testimonials?: ProductTestimonial[];
 };
 
 export const products: Product[] = [
   {
-    slug: "fujisan-thinning-scissors",
-    name: "Fujisan Thinning Scissors",
-    tagline: "Effortless blending. Invisible transitions.",
-    price: 189,
-    compareAt: 249,
-    image: fujisanImg,
-    rating: 4.9,
-    reviewCount: 1248,
-    shortDescription:
-      "Precision-engineered 30-tooth thinning shears for seamless blends, weight removal, and soft texture work.",
-    longDescription:
-      "The Fujisan is built for the moment between cuts — where a fade becomes a blend, and a blend becomes invisible. Forged from premium 440C Japanese-grade stainless steel and convex-hollow ground, each tooth removes a calibrated 25–30% of hair per pass, giving you total control over weight, movement, and softness.",
-    features: [
-      { title: "30 V-Cut Teeth", description: "Calibrated 25–30% removal per pass for predictable blends." },
-      { title: "440C Japanese-Grade Steel", description: "Hardened to 60 HRC for a long-lasting, hand-honed edge." },
-      { title: "Convex Hollow-Ground Blade", description: "Glides through hair with zero pull or push." },
-      { title: "Adjustable Tension Dial", description: "Fine-tune resistance to match your hand and rhythm." },
-    ],
-    benefits: [
-      { title: "Cleaner Cuts", description: "Sharper teeth grip and slice — no folding, no chewing, no re-passes." },
-      { title: "Better Blending", description: "Eliminate hard fade lines in a single pass and save 3–5 minutes per client." },
-      { title: "Greater Comfort", description: "Offset ergonomic handle drops your thumb and unloads wrist tension." },
-      { title: "Longer Edge Life", description: "Premium steel holds its edge through thousands of cuts between sharpenings." },
-    ],
-    useCases: ["Fade blending", "Bulk removal", "Texturizing", "Soft layering"],
-    specs: [
-      { label: "Length", value: "6.0 inches" },
-      { label: "Teeth", value: "30 V-Cut" },
-      { label: "Steel", value: "440C Japanese Stainless" },
-      { label: "Hardness", value: "60 HRC" },
-      { label: "Handle", value: "Offset Ergonomic" },
-      { label: "Weight", value: "58g" },
-    ],
-    faq: [
-      { q: "How much hair does the Fujisan remove per pass?", a: "Roughly 25–30% — the sweet spot for blending without leaving visible gaps." },
-      { q: "Will it work on fine hair?", a: "Yes. The V-cut tooth profile is gentle enough for fine hair while still effective on coarse, dense textures." },
-      { q: "How often should I sharpen it?", a: "Professional use: every 6–9 months. We offer a lifetime sharpening program for all Katana Edge owners." },
-    ],
-  },
-  {
-    slug: "micro-slit-scissors",
-    name: "Micro Slit Scissors",
-    tagline: "Surgical precision. Invisible texture.",
-    price: 219,
-    compareAt: 279,
-    image: microslitImg,
+    slug: "micro-slit-shears",
+    name: "Micro Slit",
+    sku: "364215376135191",
+    tagline: "Stable, precise dry and wet cutting.",
+    price: 1099.99,
+    image: microslitImg1,
+    gallery: [microslitImg1, microslitImg2, microslitImg3, microslitImg4],
+    video: microslitVideo,
     rating: 4.9,
     reviewCount: 892,
     shortDescription:
-      "Micro-serrated straight blades for clean perimeter work, precision detailing, and texturizing without slippage.",
+      "Patent-protected shears designed for stable, precise dry and wet hair cutting.",
     longDescription:
-      "The Micro Slit is what you reach for when the cut has to be perfect. Hundreds of laser-etched micro-serrations grip every strand — preventing the hair from sliding forward — so your line stays exactly where you placed it. Ideal for detail work, dry cutting, and soft point texturizing on the finish.",
-    features: [
-      { title: "Laser-Etched Micro-Serrations", description: "Hundreds of micro-teeth grip hair instantly — zero slippage." },
-      { title: "ATS-314 Cobalt Alloy", description: "Cobalt-infused steel for a razor edge that won't dull on dry hair." },
-      { title: "Mirror-Polished Convex Edge", description: "Hand-honed to a 38° convex bevel for clean, push-cut control." },
-      { title: "Precision-Tuned Pivot", description: "Smooth, silent action with no play — even after years of daily use." },
+      "After years of testing different blade materials and shapes, Micro Slit was created as a better solution for dry hair cutting. Its patent-protected microscopic slits are laser-cut into one side of the blade to help keep dry hair stable while cutting.\n\nDesigned with flat screws and a refined professional finish, Micro Slit delivers precise, comfortable, and effortless cutting for both dry and wet hair.",
+    shippingHandling:
+      "Every order is prepared with care and precision before shipping. Delivery time: 6–8 business days. Flat-rate shipping: $20.",
+    returnPolicy:
+      "Customers have 7 days from delivery to request a return or exchange. Items must be unused and in original condition.",
+    warranty:
+      "Every pair includes a lifetime warranty covering defects in materials or workmanship. If eligible, we will repair or replace the shears at no cost.",
+    testimonials: [
+      {
+        quote:
+          "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability. It has become my go-to for both dry and wet hair.",
+        name: "Brenna",
+        role: "Ame Salon",
+      },
+      {
+        quote:
+          "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.",
+        name: "Laura Wright",
+        role: "Laura Studio",
+      },
     ],
-    benefits: [
-      { title: "Cleaner Lines", description: "Perimeter, neckline, and bang work stays exactly where you placed it." },
-      { title: "Dry-Cut Confidence", description: "Cut dry without fold, push, or pull — finish the shape your client sees." },
-      { title: "Faster Detailing", description: "No re-positioning. No re-cutting. Get the line right the first time." },
-      { title: "Premium Client Feel", description: "Silent, smooth, weightless — the cut your clients can feel." },
-    ],
-    useCases: ["Dry cutting", "Perimeter detailing", "Point texturizing", "Precision finishing"],
-    specs: [
-      { label: "Length", value: "6.0 inches" },
-      { label: "Edge", value: "Micro-Serrated" },
-      { label: "Steel", value: "ATS-314 Cobalt Alloy" },
-      { label: "Hardness", value: "62 HRC" },
-      { label: "Handle", value: "Classic Offset" },
-      { label: "Weight", value: "62g" },
-    ],
-    faq: [
-      { q: "What are Micro Slit Scissors used for?", a: "Precision dry-cut work — perimeters, fringes, point cutting, and any detail where the hair cannot slip." },
-      { q: "Are they suitable for slide cutting?", a: "No. The micro-serrations grip the hair. Use a smooth-blade shear for slide cutting." },
-      { q: "Can a beginner use these?", a: "Yes — and we recommend it. The micro-serrations forgive small technique errors and accelerate learning." },
-    ],
+  },
+  {
+    slug: "fujisan-thinning-shears",
+    name: "Fujisan",
+    tagline: "Smooth blending. Healthier results.",
+    price: 859.99,
+    image: fujisanImg1,
+    gallery: [fujisanImg1, fujisanImg2, fujisanImg3, fujisanImg4],
+    video: fujisanVideo,
+    rating: 4.9,
+    reviewCount: 1248,
+    shortDescription:
+      "Premium thinning shears built for smooth blending, clean movement, and healthier results.",
+    longDescription:
+      "Fujisan is designed to upgrade precision cutting while protecting hair health. The custom-grooved design helps create a smooth, jam-free cut, while rounded corner teeth allow clean movement through the hair.\n\nBuilt for professional stylists and barbers, Fujisan helps reduce stress during blending, softening, and texture work.",
+    shippingHandling:
+      "Every order is prepared with care and precision before shipping. Delivery time: 6–8 business days. Flat-rate shipping: $20.",
+    returnPolicy:
+      "Customers have 7 days from delivery to request a return or exchange. Items must be unused and in original condition.",
+    warranty:
+      "Every pair includes a lifetime warranty covering defects in materials or workmanship. If eligible, we will repair or replace the shears at no cost.",
   },
 ];
 
 export const getProduct = (slug: string) => products.find((p) => p.slug === slug);
+
+export function formatProductPrice(price: number) {
+  return price.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}

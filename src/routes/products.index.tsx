@@ -7,7 +7,7 @@ export const Route = createFileRoute("/products/")({
   head: () => ({
     meta: [
       { title: "Shop Professional Barber Scissors & Shears | Katana Edge" },
-      { name: "description", content: "Browse premium professional barber scissors and thinning shears. Fujisan Thinning Scissors and Micro Slit Scissors — engineered for working professionals." },
+      { name: "description", content: "Browse premium professional shears from Katana Edge. Fujisan and Micro Slit — engineered for working barbers and stylists." },
       { property: "og:title", content: "Shop Katana Edge Scissors" },
       { property: "og:description", content: "Premium thinning shears and micro-serrated barber scissors." },
       { property: "og:url", content: "/products" },

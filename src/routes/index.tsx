@@ -10,6 +10,9 @@ import heroCustomImg from "@/assets/hero-custom.jpg";
 import logoImg from "@/assets/logo.jpg";
 import craftImg from "@/assets/craft-steel.jpg";
 import shopImg from "@/assets/barbershop.jpg";
+import testimonialProfessional1 from "@/assets/testimonials/professional-1.png";
+import testimonialProfessional2 from "@/assets/testimonials/professional-2.png";
+import testimonialProfessional3 from "@/assets/testimonials/professional-3.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -43,31 +46,24 @@ const whyItems = [
 const testimonials = [
   {
     quote:
-      "The Fujisan is the cleanest blending shear I've ever picked up. My fades drop into place in a single pass — I'm saving five minutes per client.",
-    name: "Marcus Vega",
-    designation: "Master Barber · Brooklyn",
-    src: "https://images.unsplash.com/photo-1622286342621-4bd786c244b8?q=80&w=1368&auto=format&fit=crop",
+      "Katana Edge shears are exceptional. Reliable, professional, always on time, and incredibly sharp. I wouldn't buy from anyone else.",
+    name: "Jetti, Paula V Salon",
+    designation: "Salon Owner · Sacramento",
+    src: testimonialProfessional1,
   },
   {
     quote:
-      "Micro Slit changed my dry-cut work. The grip on the strand is unreal — no slip, no re-cut. Like working with a scalpel.",
+      "I love my new Katana Edge shears. They cut like butter and deliver incredible performance every single day.",
     name: "Aiko Tanaka",
-    designation: "Stylist · Tokyo",
-    src: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=1368&auto=format&fit=crop",
+    designation: "Beau Monde Academy · Portland",
+    src: testimonialProfessional2,
   },
   {
     quote:
-      "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.",
-    name: "Devon Hill",
-    designation: "Salon Owner · Chicago",
-    src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1368&auto=format&fit=crop",
-  },
-  {
-    quote:
-      "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.",
-    name: "Sofia Marín",
-    designation: "Stylist Educator · Madrid",
-    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1368&auto=format&fit=crop",
+      "Katana Edge training helped me leave my 9-to-5, build substantial income, and enjoy retirement in Hawaii.",
+    name: "Noriaki Nagayama",
+    designation: "Entrapreneur · New York",
+    src: testimonialProfessional3,
   },
 ];
 
@@ -77,7 +73,7 @@ const faqs = [
   { q: "How often should I sharpen them?", a: "For full-time professional use, every 6–9 months. We offer lifetime sharpening for all Katana Edge owners — ship it in, we honor it free for life." },
   { q: "What is the return policy?", a: "60-day no-questions-asked return on any unused shear. If you've used it and it isn't right, we'll exchange it or sharpen it on the house." },
   { q: "Do professional barbers use thinning scissors?", a: "Absolutely. Thinning shears (like the Fujisan) are essential for fade blending, weight removal, and creating soft, invisible transitions between sections." },
-  { q: "What are Micro Slit Scissors used for?", a: "Precision dry-cut work — perimeters, fringes, point cutting, and any detail where the hair cannot be allowed to slip forward in the blade." },
+  { q: "What is Micro Slit used for?", a: "Micro Slit is designed for stable, precise dry and wet hair cutting. Its patent-protected microscopic slits help keep dry hair stable while cutting for clean, controlled results." },
 ];
 
 function HomePage() {
@@ -370,7 +366,9 @@ function HomePage() {
           <div className="mt-10 flex flex-wrap gap-3 justify-center">
             <Link to="/products" className="btn-gold">Join Now <ArrowRight className="size-4" /></Link>
             <Link to="/products" className="btn-ghost-light">Shop Now</Link>
-            <a href="tel:+13163682814" className="btn-ghost-light">Talk to a specialist</a>
+            <a href="#contact" className="btn-ghost-light">
+              Talk to a specialist
+            </a>
           </div>
         </div>
       </section>

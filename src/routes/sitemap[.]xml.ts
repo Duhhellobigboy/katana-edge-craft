@@ -16,8 +16,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/products", changefreq: "weekly", priority: "0.9" },
-          { path: "/products/fujisan-thinning-scissors", changefreq: "weekly", priority: "0.9" },
-          { path: "/products/micro-slit-scissors", changefreq: "weekly", priority: "0.9" },
+          { path: "/products/fujisan-thinning-shears", changefreq: "weekly", priority: "0.9" },
+          { path: "/products/micro-slit-shears", changefreq: "weekly", priority: "0.9" },
           { path: "/about", changefreq: "monthly", priority: "0.6" },
           { path: "/why-katana-edge", changefreq: "monthly", priority: "0.7" },
           { path: "/reviews", changefreq: "weekly", priority: "0.7" },
