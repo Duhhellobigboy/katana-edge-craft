@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
 
 export type CartItem = {
   slug: string;
@@ -54,11 +55,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (existing) {
         return prev.map((item) =>
           item.slug === newItem.slug
-            ? { ...item, quantity: item.quantity + quantity }
+            ? {
+                ...item,
+                quantity: Math.min(
+                  MAX_CHECKOUT_QUANTITY,
+                  item.quantity + quantity
+                ),
+              }
             : item
         );
       }
-      return [...prev, { ...newItem, quantity }];
+      return [
+        ...prev,
+        { ...newItem, quantity: Math.min(MAX_CHECKOUT_QUANTITY, quantity) },
+      ];
     });
   };
 
@@ -72,7 +82,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setItems((prev) =>
-      prev.map((item) => (item.slug === slug ? { ...item, quantity } : item))
+      prev.map((item) =>
+        item.slug === slug
+          ? { ...item, quantity: Math.min(MAX_CHECKOUT_QUANTITY, quantity) }
+          : item
+      )
     );
   };
 

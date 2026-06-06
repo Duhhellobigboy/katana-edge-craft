@@ -129,8 +129,14 @@ function HomePage() {
               Elite thinning and micro slit scissors for cleaner control, smoother blends, and sharper finishes.
             </p>
 
-            {/* Streetwear Shop Button */}
-            <div className="mt-8">
+            {/* Primary CTAs */}
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Link
+                to="/products"
+                className="btn-gold !py-4 !px-8 text-center"
+              >
+                Apply Now
+              </Link>
               <Link
                 to="/products"
                 className="inline-flex items-center justify-between bg-black border border-white/20 hover:border-gold px-6 py-4 transition-all duration-300 group gap-5 w-full sm:w-auto"
@@ -146,21 +152,21 @@ function HomePage() {
                   style={{ filter: "invert(1) brightness(1.2)", mixBlendMode: "screen" }}
                 />
               </Link>
+            </div>
 
               {/* Security & shipping trust labels */}
-              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-[10px] uppercase tracking-[0.18em] text-white/50">
-                <div className="flex items-center gap-2">
-                  <Lock className="size-3.5 text-gold" />
-                  <span>SECURE CHECKOUT</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="size-3.5 text-gold" />
-                  <span>WORLDWIDE SHIPPING</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RotateCcw className="size-3.5 text-gold" />
-                  <span>EASY RETURNS</span>
-                </div>
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-[10px] uppercase tracking-[0.18em] text-white/50">
+              <div className="flex items-center gap-2">
+                <Lock className="size-3.5 text-gold" />
+                <span>SECURE CHECKOUT</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="size-3.5 text-gold" />
+                <span>WORLDWIDE SHIPPING</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <RotateCcw className="size-3.5 text-gold" />
+                <span>EASY RETURNS</span>
               </div>
             </div>
           </div>
@@ -362,7 +368,8 @@ function HomePage() {
             Join the professionals who trust Katana Edge every day.
           </p>
           <div className="mt-10 flex flex-wrap gap-3 justify-center">
-            <Link to="/products" className="btn-gold">Shop Now <ArrowRight className="size-4" /></Link>
+            <Link to="/products" className="btn-gold">Join Now <ArrowRight className="size-4" /></Link>
+            <Link to="/products" className="btn-ghost-light">Shop Now</Link>
             <a href="tel:+13163682814" className="btn-ghost-light">Talk to a specialist</a>
           </div>
         </div>

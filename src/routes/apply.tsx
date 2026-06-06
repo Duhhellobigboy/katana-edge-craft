@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/checkout/success")({
+export const Route = createFileRoute("/apply")({
   beforeLoad: ({ search }) => {
     throw redirect({
-      to: "/success",
+      to: "/checkout",
       search,
     });
   },

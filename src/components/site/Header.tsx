@@ -102,9 +102,13 @@ export function Header() {
           <button className="text-white hover:text-gold transition-colors font-semibold" aria-label="Search">
             <Search className="size-4 md:size-5" />
           </button>
-          <Link to="/checkout" className="text-white hover:text-gold transition-colors" aria-label="Account">
+          <button
+            type="button"
+            className="text-white hover:text-gold transition-colors"
+            aria-label="Account"
+          >
             <User className="size-4 md:size-5" />
-          </Link>
+          </button>
           <button
             className="text-white hover:text-gold transition-colors relative"
             aria-label="Cart"
@@ -119,7 +123,7 @@ export function Header() {
           </button>
           
           <Link to="/products" className="btn-gold hidden sm:inline-flex !py-2 !px-4 md:!py-2.5 md:!px-5 !text-[0.65rem] tracking-[0.15em] font-semibold">
-            Shop Now
+            Apply Now
           </Link>
         </div>
       </div>
@@ -140,6 +144,13 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              to="/products"
+              onClick={() => setOpen(false)}
+              className="btn-gold mt-2 text-center"
+            >
+              Apply Now
+            </Link>
           </nav>
         </div>
       )}

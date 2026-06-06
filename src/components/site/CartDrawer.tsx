@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
 import {
   Sheet,
   SheetContent,
@@ -87,7 +88,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       <span className="w-8 text-center font-display text-sm">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.slug, item.quantity + 1)}
-                        className="size-7 flex items-center justify-center hover:bg-secondary/40 text-muted-foreground hover:text-white transition-colors"
+                        disabled={item.quantity >= MAX_CHECKOUT_QUANTITY}
+                        className="size-7 flex items-center justify-center hover:bg-secondary/40 text-muted-foreground hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
                         aria-label="Increase quantity"
                       >
                         <Plus className="size-3" />
