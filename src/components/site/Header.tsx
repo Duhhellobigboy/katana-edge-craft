@@ -27,8 +27,7 @@ const tickerMessages = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
-  const { cartCount } = useCart();
+  const { cartCount, cartOpen, setCartOpen } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

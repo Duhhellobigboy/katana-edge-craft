@@ -102,3 +102,15 @@ export const getProduct = (slug: string) => products.find((p) => p.slug === slug
 export function formatProductPrice(price: number) {
   return price.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
+
+/** Avoid floating-point drift (e.g. 1099.99 × 6 → 6599.9400000000005). */
+export function sumMoneyAmounts(
+  amounts: { unitPrice: number; quantity: number }[],
+): number {
+  const cents = amounts.reduce(
+    (total, { unitPrice, quantity }) =>
+      total + Math.round(unitPrice * 100) * quantity,
+    0,
+  );
+  return cents / 100;
+}

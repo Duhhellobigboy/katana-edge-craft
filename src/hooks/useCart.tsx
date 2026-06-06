@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
+import { sumMoneyAmounts } from "@/lib/products";
 
 export type CartItem = {
   slug: string;
@@ -17,12 +18,16 @@ type CartContextType = {
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
+  cartOpen: boolean;
+  setCartOpen: (open: boolean) => void;
+  openCart: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Load cart from localStorage on mount
@@ -70,6 +75,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         { ...newItem, quantity: Math.min(MAX_CHECKOUT_QUANTITY, quantity) },
       ];
     });
+    setCartOpen(true);
   };
 
   const removeItem = (slug: string) => {
@@ -95,7 +101,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
-  const cartTotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const cartTotal = sumMoneyAmounts(
+    items.map((item) => ({ unitPrice: item.price, quantity: item.quantity })),
+  );
 
   return (
     <CartContext.Provider
@@ -107,6 +115,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         cartCount: isHydrated ? cartCount : 0,
         cartTotal: isHydrated ? cartTotal : 0,
+        cartOpen,
+        setCartOpen,
+        openCart: () => setCartOpen(true),
       }}
     >
       {children}

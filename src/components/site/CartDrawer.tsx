@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
+import { formatProductPrice } from "@/lib/products";
 import {
   Sheet,
   SheetContent,
@@ -47,12 +48,13 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   Add some high-performance shears to get started.
                 </p>
               </div>
-              <button
+              <Link
+                to="/products"
                 onClick={() => onOpenChange(false)}
                 className="btn-gold mt-4 inline-flex items-center gap-2"
               >
                 Browse Products
-              </button>
+              </Link>
             </div>
           ) : (
             items.map((item) => (
@@ -72,7 +74,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                 {/* Details */}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-display text-base tracking-wide truncate">{item.name}</h4>
-                  <p className="text-sm text-gold mt-0.5">${item.price}</p>
+                  <p className="text-sm text-gold mt-0.5">{formatProductPrice(item.price)}</p>
 
                   {/* Quantity and Actions */}
                   <div className="flex items-center justify-between mt-3">
@@ -116,7 +118,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           <div className="p-6 border-t border-border/40 bg-black/40 space-y-4">
             <div className="flex justify-between items-baseline">
               <span className="text-sm uppercase tracking-widest text-muted-foreground">Subtotal</span>
-              <span className="font-display text-2xl text-white">${cartTotal}</span>
+              <span className="font-display text-2xl text-white">
+                {formatProductPrice(cartTotal)}
+              </span>
             </div>
             <p className="text-xs text-muted-foreground leading-normal">
               Shipping & taxes calculated at checkout. Free shipping on orders over $99.
