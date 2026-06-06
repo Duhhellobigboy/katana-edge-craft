@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ChatWidget } from "@/components/site/ChatWidget";
+import { CartProvider } from "../hooks/useCart";
 
 function NotFoundComponent() {
   return (
@@ -116,8 +117,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <ChatWidget />
+      <CartProvider>
+        <Outlet />
+        <ChatWidget />
+      </CartProvider>
     </QueryClientProvider>
   );
 }

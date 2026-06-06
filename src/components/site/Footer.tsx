@@ -17,8 +17,8 @@ export function Footer() {
         <div>
           <h4 className="eyebrow mb-4">Shop</h4>
           <ul className="space-y-2.5 text-sm text-muted-foreground">
-            <li><Link to="/products/$slug" params={{ slug: "fujisan-thinning-scissors" }} className="hover:text-gold transition">Fujisan Thinning Scissors</Link></li>
-            <li><Link to="/products/$slug" params={{ slug: "micro-slit-scissors" }} className="hover:text-gold transition">Micro Slit Scissors</Link></li>
+            <li><Link to="/products/$slug" params={{ slug: "fujisan-thinning-shears" }} className="hover:text-gold transition">Fujisan</Link></li>
+            <li><Link to="/products/$slug" params={{ slug: "micro-slit-shears" }} className="hover:text-gold transition">Micro Slit</Link></li>
             <li><Link to="/shop" className="hover:text-gold transition">All Scissors</Link></li>
           </ul>
         </div>
