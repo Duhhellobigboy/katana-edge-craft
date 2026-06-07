@@ -1,5 +1,5 @@
-import process from "node:process";
-import { ensureServerEnv } from "./env.server";
+import { getEnvVar, ensureServerEnv } from "./env.server";
+export { getSiteUrl } from "./env.server";
 
 export const CHECKOUT_PRODUCT_KEYS = ["microslit", "fujisan"] as const;
 export type CheckoutProductKey = (typeof CHECKOUT_PRODUCT_KEYS)[number];
@@ -16,13 +16,13 @@ function getProducts(): Record<CheckoutProductKey, CheckoutProductConfig> {
   return {
     microslit: {
       name: "Micro Slit",
-      priceId: process.env.STRIPE_MICROSLIT_PRICE_ID ?? "",
-      productId: process.env.STRIPE_MICROSLIT_PRODUCT_ID,
+      priceId: getEnvVar("STRIPE_MICROSLIT_PRICE_ID"),
+      productId: getEnvVar("STRIPE_MICROSLIT_PRODUCT_ID") || undefined,
     },
     fujisan: {
       name: "Fujisan",
-      priceId: process.env.STRIPE_FUJISAN_PRICE_ID ?? "",
-      productId: process.env.STRIPE_FUJISAN_PRODUCT_ID,
+      priceId: getEnvVar("STRIPE_FUJISAN_PRICE_ID"),
+      productId: getEnvVar("STRIPE_FUJISAN_PRODUCT_ID") || undefined,
     },
   };
 }
@@ -37,11 +37,6 @@ export function resolveCheckoutProduct(productKey: CheckoutProductKey) {
     throw new Error(`Missing Stripe price ID env var for product: ${productKey}`);
   }
   return product;
-}
-
-export function getSiteUrl(): string {
-  ensureServerEnv();
-  return process.env.VITE_SITE_URL || "http://localhost:8080";
 }
 
 /** @deprecated Use resolveCheckoutProduct — kept for webhook imports */

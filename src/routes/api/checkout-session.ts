@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getGuestCheckoutSession } from "@/lib/checkout-db.server";
+import { ensureServerEnv } from "@/lib/env.server";
+import {
+  isCheckoutConfigError,
+  toClientCheckoutError,
+} from "@/lib/checkout-messages";
 
 export const Route = createFileRoute("/api/checkout-session")({
   server: {
@@ -13,6 +18,7 @@ export const Route = createFileRoute("/api/checkout-session")({
         }
 
         try {
+          ensureServerEnv();
           const session = await getGuestCheckoutSession(checkoutSessionId);
 
           if (!session) {
@@ -21,10 +27,20 @@ export const Route = createFileRoute("/api/checkout-session")({
 
           return Response.json({ session });
         } catch (err) {
-          console.error("Failed to load guest checkout session:", err);
+          const serverMessage =
+            err instanceof Error ? err.message : "Failed to load checkout session.";
+          console.error("[checkout-session]", serverMessage);
+
+          if (isCheckoutConfigError(serverMessage)) {
+            return Response.json(
+              { error: toClientCheckoutError(serverMessage), session: null },
+              { status: 503 },
+            );
+          }
+
           return Response.json(
-            { error: "Failed to load checkout session." },
-            { status: 500 }
+            { error: "Failed to load checkout session.", session: null },
+            { status: 500 },
           );
         }
       },

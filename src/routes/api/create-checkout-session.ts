@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { ensureServerEnv, logStripeEnvDebug } from "@/lib/env.server";
+import { ensureServerEnv } from "@/lib/env.server";
 import { getStripeClient, logStripeError } from "@/lib/stripe.server";
 import {
   getSiteUrl,
@@ -12,6 +12,10 @@ import {
   upsertGuestCheckoutSession,
 } from "@/lib/checkout-db.server";
 import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
+import {
+  isCheckoutConfigError,
+  toClientCheckoutError,
+} from "@/lib/checkout-messages";
 
 const lineItemSchema = z.object({
   productKey: z.enum(["microslit", "fujisan"]),
@@ -30,20 +34,12 @@ const checkoutRequestSchema = z.object({
   phone: z.string().trim().min(7, "Phone number is required."),
 });
 
-function sanitizeStripeError(err: unknown): string {
+function logCheckoutFailure(err: unknown) {
   if (err instanceof Error) {
-    if (err.message.includes("Missing STRIPE_SECRET_KEY")) {
-      return err.message;
-    }
-    if (
-      err.message.includes("must start with sk_test_") ||
-      err.message.includes("Publishable key")
-    ) {
-      return err.message;
-    }
+    console.error("[create-checkout-session]", err.message);
+    return;
   }
-
-  return "Stripe checkout failed. Check server logs for the exact Stripe error.";
+  console.error("[create-checkout-session]", err);
 }
 
 export const Route = createFileRoute("/api/create-checkout-session")({
@@ -62,7 +58,7 @@ export const Route = createFileRoute("/api/create-checkout-session")({
         if (!parsed.success) {
           return Response.json(
             { error: parsed.error.errors[0]?.message ?? "Invalid request." },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
@@ -70,7 +66,6 @@ export const Route = createFileRoute("/api/create-checkout-session")({
 
         try {
           ensureServerEnv();
-          logStripeEnvDebug();
 
           const stripe = getStripeClient();
           const siteUrl = getSiteUrl();
@@ -117,9 +112,10 @@ export const Route = createFileRoute("/api/create-checkout-session")({
           });
 
           if (!session.url) {
+            console.error("[create-checkout-session] Stripe returned no checkout URL.");
             return Response.json(
-              { error: "Stripe did not return a checkout URL." },
-              { status: 500 }
+              { error: toClientCheckoutError("Stripe did not return a checkout URL.") },
+              { status: 500 },
             );
           }
 
@@ -131,10 +127,15 @@ export const Route = createFileRoute("/api/create-checkout-session")({
           return Response.json({ url: session.url });
         } catch (err) {
           logStripeError(err);
-          console.error("Failed to create checkout session:", err);
+          logCheckoutFailure(err);
+
+          const serverMessage =
+            err instanceof Error ? err.message : "Stripe checkout failed.";
+          const status = isCheckoutConfigError(serverMessage) ? 503 : 500;
+
           return Response.json(
-            { error: sanitizeStripeError(err) },
-            { status: 500 }
+            { error: toClientCheckoutError(serverMessage) },
+            { status },
           );
         }
       },

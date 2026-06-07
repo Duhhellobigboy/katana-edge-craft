@@ -1,27 +1,27 @@
 import Stripe from "stripe";
 import process from "node:process";
-import { ensureServerEnv } from "./env.server";
+import { INVALID_STRIPE_SECRET_KEY_MESSAGE } from "./checkout-messages";
+import {
+  ensureServerEnv,
+  logStripeEnvDebug,
+  validateStripeSecretKey,
+} from "./env.server";
 
 let stripeInstance: Stripe | null = null;
 let cachedSecretKey: string | null = null;
 
 export function getStripeClient() {
   ensureServerEnv();
+  logStripeEnvDebug();
 
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  const validation = validateStripeSecretKey(process.env.STRIPE_SECRET_KEY);
 
-  if (!stripeSecretKey) {
-    throw new Error("Missing STRIPE_SECRET_KEY environment variable.");
+  if (!validation.valid || !validation.key) {
+    console.error("[stripe-env] Stripe client init failed:", validation.reason);
+    throw new Error(INVALID_STRIPE_SECRET_KEY_MESSAGE);
   }
 
-  if (
-    !stripeSecretKey.startsWith("sk_test_") &&
-    !stripeSecretKey.startsWith("sk_live_")
-  ) {
-    throw new Error(
-      "STRIPE_SECRET_KEY must start with sk_test_ or sk_live_. Use the Secret key from Stripe Dashboard, not the Publishable key."
-    );
-  }
+  const stripeSecretKey = validation.key;
 
   if (!stripeInstance || cachedSecretKey !== stripeSecretKey) {
     stripeInstance = new Stripe(stripeSecretKey, {

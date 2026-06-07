@@ -20,6 +20,7 @@ import {
   urlParamsToCheckoutLineItems,
 } from "@/lib/cart-checkout";
 import type { CheckoutLineItem } from "@/lib/product-keys";
+import { CHECKOUT_CONFIG_CLIENT_MESSAGE } from "@/lib/checkout-messages";
 
 const checkoutFormSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required."),
@@ -137,7 +138,9 @@ function CheckoutPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Unable to start checkout.");
+        throw new Error(
+          data.error || CHECKOUT_CONFIG_CLIENT_MESSAGE,
+        );
       }
 
       if (!data.url) {
@@ -147,7 +150,9 @@ function CheckoutPage() {
       window.location.href = data.url;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        err instanceof Error
+          ? err.message
+          : CHECKOUT_CONFIG_CLIENT_MESSAGE;
       setSubmitError(message);
       setSubmitting(false);
     }

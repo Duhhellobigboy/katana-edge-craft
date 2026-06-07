@@ -3,6 +3,7 @@ import { z } from "zod";
 import process from "node:process";
 import { getStripeClient } from "./stripe.server";
 import { createSupabaseServerClient } from "./supabase.server";
+import { getSiteUrl } from "./env.server";
 import { getProduct } from "./products";
 
 // Helper to verify user from accessToken
@@ -50,7 +51,7 @@ export const createStripeCheckoutSession = createServerFn({ method: "POST" })
       // Format image URL
       // If we are on localhost, Stripe requires a public URL or it will error if we use localhost paths.
       // We will fall back to placeholder images in Stripe if it's not a public URL.
-      const siteUrl = process.env.VITE_SITE_URL || "http://localhost:5173";
+      const siteUrl = getSiteUrl();
       let imageUrl = product.image;
       if (imageUrl.startsWith("/")) {
         imageUrl = `${siteUrl}${imageUrl}`;
@@ -77,7 +78,7 @@ export const createStripeCheckoutSession = createServerFn({ method: "POST" })
       throw new Error("Cart is empty.");
     }
 
-    const siteUrl = process.env.VITE_SITE_URL || "http://localhost:5173";
+    const siteUrl = getSiteUrl();
 
     // 3. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
