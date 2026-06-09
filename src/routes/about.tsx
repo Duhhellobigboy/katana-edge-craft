@@ -3,6 +3,8 @@ import { Layout } from "@/components/site/Layout";
 import craftImg from "@/assets/craft-steel.jpg";
 import shopImg from "@/assets/barbershop.jpg";
 
+import { fetchSiteContent } from "@/lib/content";
+
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
@@ -14,10 +16,15 @@ export const Route = createFileRoute("/about")({
     ],
     links: [{ rel: "canonical", href: "/about" }],
   }),
+  loader: async () => {
+    const content = await fetchSiteContent();
+    return { content };
+  },
   component: AboutPage,
 });
 
 function AboutPage() {
+  const { content } = Route.useLoaderData();
   return (
     <Layout>
       <section className="relative py-24 md:py-32 overflow-hidden border-b border-border">
@@ -44,7 +51,7 @@ function AboutPage() {
               The tool should disappear.
             </h2>
             <p className="mt-6 text-muted-foreground leading-relaxed">
-              A great shear is one you stop noticing — until you pick up something lesser. We obsess over weight, balance, edge geometry, and pivot tension because every imperceptible detail compounds into thousands of cleaner cuts a year.
+              {content["about.brand.statement"] || "A great shear is one you stop noticing — until you pick up something lesser. We obsess over weight, balance, edge geometry, and pivot tension because every imperceptible detail compounds into thousands of cleaner cuts a year."}
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               Every Katana Edge shear is forged from premium Japanese-grade steel, hand-honed to a convex edge, and serialized before it leaves our workshop. Made in small batches. Built to last decades.

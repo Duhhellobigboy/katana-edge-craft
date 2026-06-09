@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
 import { Star, Quote } from "lucide-react";
+import { fetchTestimonials } from "@/lib/content";
 
 export const Route = createFileRoute("/reviews")({
+  loader: () => fetchTestimonials(),
   head: () => ({
     meta: [
       { title: "Reviews — What Barbers Say About Katana Edge Scissors" },
@@ -15,20 +17,9 @@ export const Route = createFileRoute("/reviews")({
   component: ReviewsPage,
 });
 
-const reviews = [
-  { name: "Marcus Vega", role: "Master Barber · Brooklyn", body: "Fujisan delivers the cleanest blending I've used. My fades drop into place in a single pass.", rating: 5 },
-  { name: "Brenna", role: "Ame Salon", body: "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability.", rating: 5 },
-  { name: "Laura Wright", role: "Laura Studio", body: "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.", rating: 5 },
-  { name: "Devon Hill", role: "Salon Owner · Chicago", body: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
-  { name: "Sofia Marín", role: "Stylist Educator · Madrid", body: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
-  { name: "James Okafor", role: "Barber · London", body: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5 },
-  { name: "Priya Shah", role: "Stylist · Mumbai", body: "The convex edge slices through Indian textures effortlessly. Total game changer.", rating: 5 },
-  { name: "Lena Vogel", role: "Salon Owner · Berlin", body: "Build quality you can feel. Heavy where it matters, weightless where it counts.", rating: 5 },
-  { name: "Carlos Rivera", role: "Master Barber · Miami", body: "Lifetime sharpening sealed the deal. These will be with me for my entire career.", rating: 5 },
-  { name: "Hannah Chen", role: "Stylist · Vancouver", body: "Worth every penny. My wrist no longer aches after a 10-hour day.", rating: 5 },
-];
-
 function ReviewsPage() {
+  const reviews = Route.useLoaderData();
+
   return (
     <Layout>
       <section className="py-24 md:py-32 border-b border-border">
@@ -53,7 +44,7 @@ function ReviewsPage() {
                 <div className="flex gap-0.5 mb-3">
                   {Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="size-3.5 fill-gold text-gold" />)}
                 </div>
-                <blockquote className="font-display text-lg leading-snug">"{r.body}"</blockquote>
+                <blockquote className="font-display text-lg leading-snug">"{r.quote}"</blockquote>
                 <figcaption className="mt-6 pt-6 border-t border-border">
                   <p className="font-medium text-sm">{r.name}</p>
                   <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] mt-1">{r.role}</p>

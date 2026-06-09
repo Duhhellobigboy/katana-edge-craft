@@ -35,6 +35,11 @@ export type Product = {
   returnPolicy: string;
   warranty: string;
   testimonials?: ProductTestimonial[];
+  features?: { title: string; description: string }[];
+  benefits?: { title: string; description: string }[];
+  useCases?: { title: string; description: string }[];
+  specs?: { label: string; value: string }[];
+  faq?: { q: string; a: string }[];
 };
 
 export const products: Product[] = [

@@ -13,6 +13,7 @@ import shopImg from "@/assets/barbershop.jpg";
 import testimonialProfessional1 from "@/assets/testimonials/professional-1.png";
 import testimonialProfessional2 from "@/assets/testimonials/professional-2.png";
 import testimonialProfessional3 from "@/assets/testimonials/professional-3.png";
+import { fetchSiteContent } from "@/lib/content";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -24,6 +25,10 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
+  loader: async () => {
+    const content = await fetchSiteContent();
+    return { content };
+  },
   component: HomePage,
 });
 
@@ -76,7 +81,25 @@ const faqs = [
   { q: "What is Micro Slit used for?", a: "Micro Slit is designed for stable, precise dry and wet hair cutting. Its patent-protected microscopic slits help keep dry hair stable while cutting for clean, controlled results." },
 ];
 
+function formatHeroTitle(title: string) {
+  const parts = title.split(/(\bcut\b)/i);
+  return parts.map((part, i) => {
+    if (part.toLowerCase() === "cut") {
+      return (
+        <span
+          key={i}
+          className="font-accent text-gold lowercase text-6xl sm:text-7xl md:text-8xl lg:text-[5.8rem] xl:text-[6.5rem] ml-1 mr-2 inline-block -rotate-2 hover:rotate-0 transition-transform duration-300"
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 function HomePage() {
+  const { content } = Route.useLoaderData();
   return (
     <Layout>
       {/* HERO */}
@@ -114,15 +137,12 @@ function HomePage() {
 
             {/* Headline */}
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.2rem] leading-[0.9] text-white tracking-tight uppercase">
-              BUILT FOR BARBERS
-              <span className="block mt-2">
-                WHO <span className="font-accent text-gold lowercase text-6xl sm:text-7xl md:text-8xl lg:text-[5.8rem] xl:text-[6.5rem] ml-1 mr-2 inline-block -rotate-2 hover:rotate-0 transition-transform duration-300">cut</span> TO WIN.
-              </span>
+              {formatHeroTitle(content["home.hero.title"] || "BUILT FOR BARBERS WHO cut TO WIN.")}
             </h1>
 
             {/* Subtitle */}
             <p className="mt-6 text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed">
-              Elite thinning and micro slit scissors for cleaner control, smoother blends, and sharper finishes.
+              {content["home.hero.subtitle"] || "Elite thinning and micro slit scissors for cleaner control, smoother blends, and sharper finishes."}
             </p>
 
             {/* Primary CTAs */}
@@ -131,7 +151,7 @@ function HomePage() {
                 to="/products"
                 className="btn-gold !py-4 !px-8 text-center"
               >
-                Apply Now
+                {content["home.hero.cta"] || "Apply Now"}
               </Link>
               <Link
                 to="/products"
