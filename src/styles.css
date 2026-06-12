@@ -65,11 +65,11 @@
   --muted: #242424;
   --muted-foreground: #a0a0a0;
 
-  --accent: #d4af37;
+  --accent: #E5D3B3;
   --accent-foreground: #000000;
 
   /* Brand tokens */
-  --gold: #d4af37;
+  --gold: #E5D3B3;
   --gold-foreground: #000000;
   --silver: #c0c0c0;
 
@@ -79,16 +79,16 @@
   --border: #242424;
   --border-strong: #333333;
   --input: #242424;
-  --ring: #d4af37;
+  --ring: #E5D3B3;
 
   --radius: 4px;
 
   /* Gradients & shadows */
-  --gradient-gold: linear-gradient(135deg, #FFD700, #D4AF37, #AA7C11);
+  --gradient-gold: linear-gradient(135deg, #F0E6D2 0%, #E5D3B3 50%, #C8B28D 100%);
   --gradient-fade: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.85) 60%, #0a0a0a 100%);
-  --gradient-edge: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.6), transparent);
+  --gradient-edge: linear-gradient(90deg, transparent, rgba(229, 211, 179, 0.6), transparent);
   --shadow-luxe: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
-  --shadow-gold: 0 0 60px -10px rgba(212, 175, 55, 0.35);
+  --shadow-gold: 0 0 60px -10px rgba(229, 211, 179, 0.35);
 }
 
 @layer base {

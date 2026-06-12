@@ -1,13 +1,13 @@
 import { supabase } from "./supabase";
 
 export const DEFAULT_SITE_CONTENT: Record<string, string> = {
-  "home.hero.title": "Precision Crafted. Professionally Trusted.",
-  "home.hero.subtitle": "Premium Japanese-inspired professional barber scissors and shears. Engineered for cleaner cuts, smoother blending, and professional control. Trusted by barbers and stylists.",
+  "home.hero.title": "BUILT FOR Stylers\nWHO cut TO WIN",
+  "home.hero.subtitle": "Premium Japanese-inspired professional shears. Engineered for cleaner cuts, smoother blending, and effortless control. Trusted by hairstylists and barbers worldwide.",
   "home.hero.cta": "Shop Now",
   "about.brand.statement": "We believe your shears are an extension of your hand. When they are balanced, sharp, and fit your style, you do better work, faster, with less fatigue. That's why we build every Katana Edge shear with surgical-grade Japanese steel and convex hand-honed blades.",
   "contact.support.email": "hello@katanaedge.com",
-  "seo.title": "Katana Edge — Professional Barber Scissors & Shears",
-  "seo.description": "Premium Japanese-inspired barber scissors and shears. Engineered for cleaner cuts, smoother blending, and professional control. Trusted by barbers and stylists.",
+  "seo.title": "Katana Edge — Premium Professional Shears & Scissors",
+  "seo.description": "Premium Japanese-inspired professional cutting shears. Engineered for cleaner cuts, smoother blending, and effortless control. Trusted by hairstylists and barbers worldwide.",
 };
 
 export const DEFAULT_FAQS = [
@@ -15,7 +15,7 @@ export const DEFAULT_FAQS = [
   { q: "Are these suitable for beginners?", a: "Yes. Properly balanced, properly tensioned shears actually accelerate skill development. Beginners learn correct hand position faster on professional-grade tools." },
   { q: "How often should I sharpen them?", a: "For full-time professional use, every 6–9 months. We offer free lifetime sharpening for all Katana Edge owners — ship it in, we honor it for life." },
   { q: "What is the return policy?", a: "60-day satisfaction guarantee. Use it. If it isn't right, return it for a full refund — no questions asked." },
-  { q: "Do professional barbers use thinning scissors?", a: "Absolutely. Thinning shears (like the Fujisan) are essential for fade blending, weight removal, and creating soft, invisible transitions between sections." },
+  { q: "Do professional stylists use thinning scissors?", a: "Absolutely. Thinning shears (like the Fujisan) are essential for fade blending, weight removal, and creating soft, invisible transitions between sections." },
   { q: "What is Micro Slit used for?", a: "Micro Slit is designed for stable, precise dry and wet hair cutting. Its patent-protected microscopic slits help keep dry hair stable while cutting for clean, controlled results." },
   { q: "Do you ship internationally?", a: "Yes. We ship to 40+ countries with full tracking. Duties and taxes vary by destination." },
   { q: "How long does shipping take?", a: "US: 2–5 business days. International: 5–10 business days. All orders ship within 48 hours." },
@@ -24,16 +24,15 @@ export const DEFAULT_FAQS = [
 ];
 
 export const DEFAULT_REVIEWS = [
-  { name: "Marcus Vega", role: "Master Barber · Brooklyn", quote: "Fujisan delivers the cleanest blending I've used. My fades drop into place in a single pass.", rating: 5 },
+  { name: "Marcus Vega", role: "Creative Director · Brooklyn", quote: "Fujisan delivers the cleanest blending I've used. My fades and transitions drop into place in a single pass.", rating: 5 },
   { name: "Brenna", role: "Ame Salon", quote: "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability.", rating: 5 },
   { name: "Laura Wright", role: "Laura Studio", quote: "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.", rating: 5 },
   { name: "Devon Hill", role: "Salon Owner · Chicago", quote: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
   { name: "Sofia Marín", role: "Stylist Educator · Madrid", quote: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
-  { name: "James Okafor", role: "Barber · London", quote: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5 },
-  { name: "Priya Shah", role: "Stylist · Mumbai", quote: "The convex edge slices through Indian textures effortlessly. Total game changer.", rating: 5 },
+  { name: "James Okafor", role: "Session Stylist · London", quote: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5 },
+  { name: "Priya Shah", role: "Senior Stylist · Mumbai", quote: "The convex edge slices through thick textures effortlessly. Total game changer.", rating: 5 },
   { name: "Lena Vogel", role: "Salon Owner · Berlin", quote: "Build quality you can feel. Heavy where it matters, weightless where it counts.", rating: 5 },
-  { name: "Carlos Rivera", role: "Master Barber · Miami", quote: "Carlos Rivera · Master Barber · Miami", rating: 5 },
-  { name: "Carlos Rivera", role: "Master Barber · Miami", quote: "Lifetime sharpening sealed the deal. These will be with me for my entire career.", rating: 5 },
+  { name: "Carlos Rivera", role: "Master Stylist · Miami", quote: "Lifetime sharpening sealed the deal. These will be with me for my entire career.", rating: 5 },
   { name: "Hannah Chen", role: "Stylist · Vancouver", quote: "Worth every penny. My wrist no longer aches after a 10-hour day.", rating: 5 },
 ];
 

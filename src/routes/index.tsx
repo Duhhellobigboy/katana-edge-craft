@@ -17,10 +17,10 @@ import { fetchSiteContent } from "@/lib/content";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Professional Barber Scissors & Shears | Katana Edge" },
-      { name: "description", content: "Premium professional barber scissors, thinning shears, and texturizing scissors. Japanese-inspired craftsmanship trusted by barbers and stylists worldwide." },
-      { property: "og:title", content: "Katana Edge — Professional Barber Scissors" },
-      { property: "og:description", content: "Precision crafted barber and stylist shears. Cleaner cuts. Smoother blending. Professional control." },
+      { title: "Premium Professional Shears & Scissors | Katana Edge" },
+      { name: "description", content: "Premium professional hair shears and texturizing scissors. Japanese-inspired craftsmanship trusted by hairstylists and barbers worldwide." },
+      { property: "og:title", content: "Katana Edge — Premium Professional Shears" },
+      { property: "og:description", content: "Precision crafted professional shears. Cleaner cuts. Smoother blending. Effortless control." },
       { property: "og:url", content: "/" },
     ],
     links: [{ rel: "canonical", href: "/" }],
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/")({
 
 const trustItems = [
   "Professional Grade Steel",
-  "Trusted By Barbers",
+  "Trusted By Stylists",
   "Precision Engineered",
   "Satisfaction Guaranteed",
 ];
@@ -45,7 +45,7 @@ const whyItems = [
   { icon: Hand, title: "Professional Comfort", body: "Offset ergonomics drop your thumb and unload wrist tension across long days." },
   { icon: Shield, title: "Long Lasting Sharpness", body: "60–62 HRC hardened steel holds its edge through thousands of cuts." },
   { icon: Hammer, title: "Built For Daily Use", body: "Engineered for the chair — not the showroom. Reliable cut after cut." },
-  { icon: Users, title: "Trusted By Professionals", body: "Used in barbershops and salons in 40+ countries. Backed by a lifetime guarantee." },
+  { icon: Users, title: "Trusted By Professionals", body: "Used in salons and barbershops in 40+ countries. Backed by a lifetime guarantee." },
 ];
 
 const testimonials = [
@@ -65,9 +65,9 @@ const testimonials = [
   },
   {
     quote:
-      "Katana Edge training helped me leave my 9-to-5, build substantial income, and enjoy retirement in Hawaii.",
-    name: "Noriaki Nagayama",
-    designation: "Entrapreneur · New York",
+      "The edge retention on the Micro Slit is unbelievable. I cut through heavy dry textures all day with zero hand strain.",
+    name: "Evelyn Carter",
+    designation: "Senior Stylist & Educator · Los Angeles",
     src: testimonialProfessional3,
   },
 ];
@@ -77,7 +77,7 @@ const faqs = [
   { q: "Are these suitable for beginners?", a: "Yes. The precision engineering actually accelerates skill development — beginners learn correct hand position faster with a properly balanced, properly tensioned shear." },
   { q: "How often should I sharpen them?", a: "For full-time professional use, every 6–9 months. We offer lifetime sharpening for all Katana Edge owners — ship it in, we honor it free for life." },
   { q: "What is the return policy?", a: "60-day no-questions-asked return on any unused shear. If you've used it and it isn't right, we'll exchange it or sharpen it on the house." },
-  { q: "Do professional barbers use thinning scissors?", a: "Absolutely. Thinning shears (like the Fujisan) are essential for fade blending, weight removal, and creating soft, invisible transitions between sections." },
+  { q: "Do professional stylists use thinning scissors?", a: "Absolutely. Thinning shears (like the Fujisan) are essential for weight removal, texture work, and creating soft, invisible transitions between sections." },
   { q: "What is Micro Slit used for?", a: "Micro Slit is designed for stable, precise dry and wet hair cutting. Its patent-protected microscopic slits help keep dry hair stable while cutting for clean, controlled results." },
 ];
 
@@ -107,7 +107,7 @@ function HomePage() {
         <div className="container-luxe relative z-10 w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center h-full">
           {/* LEFT SIDE (TEXT & CTA) */}
           <div className="animate-fade-up pt-8 lg:pt-12 lg:pr-4 flex flex-col justify-center">
-            {/* Professional Barber Rating / Avatar Group */}
+            {/* Professional Rating / Avatar Group */}
             <div className="flex items-center gap-3 mb-6">
               <div className="flex -space-x-2">
                 {[
@@ -119,25 +119,27 @@ function HomePage() {
                   <img
                     key={i}
                     src={url}
-                    alt="Barber avatar"
+                    alt="Stylist avatar"
                     className="size-8 rounded-full border border-black object-cover"
                   />
                 ))}
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-sm font-bold text-white tracking-wide">4.9 / 5</span>
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="size-3 fill-gold text-gold" />
                   ))}
                 </div>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest ml-1 hidden sm:inline">10K+ Barbers Globally</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest ml-1 font-semibold">
+                  1,000+ Satisfied Stylists · 1,000+ Stylists Globally
+                </span>
               </div>
             </div>
 
             {/* Headline */}
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.2rem] leading-[0.9] text-white tracking-tight uppercase">
-              {formatHeroTitle(content["home.hero.title"] || "BUILT FOR BARBERS WHO cut TO WIN.")}
+            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.2rem] leading-[0.9] text-white tracking-tight normal-case whitespace-pre-line">
+              {formatHeroTitle(content["home.hero.title"] || "BUILT FOR Stylers\nWHO cut TO WIN")}
             </h1>
 
             {/* Subtitle */}
@@ -221,7 +223,7 @@ function HomePage() {
       <section className="py-8 border-y border-border overflow-hidden bg-card">
         <div className="flex gap-16 animate-marquee whitespace-nowrap">
           {[...Array(2)].flatMap((_, i) =>
-            ["440C Japanese Steel", "60 HRC Hardness", "Hand-Honed Edge", "Lifetime Sharpening", "Free Shipping", "60-Day Returns", "Trusted in 40+ Countries"].map((t, j) => (
+            ["1,000+ Stylists Globally", "4.9/5 Verified Rating", "Seki Japan Sword Tradition", "Convex Hand-Honed Edge", "440C Cobalt Steel", "Lifetime Sharpening", "60-Day Trial"].map((t, j) => (
               <span key={`${i}-${j}`} className="text-xs uppercase tracking-[0.32em] text-muted-foreground">
                 {t} <span className="text-gold ml-16">·</span>
               </span>
@@ -313,6 +315,33 @@ function HomePage() {
         </div>
       </section>
 
+      {/* SEKI JAPAN HERITAGE */}
+      <section className="py-24 md:py-32 border-t border-border bg-[#050505]">
+        <div className="container-luxe grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="product-image-wrap aspect-video md:aspect-square max-h-[500px]">
+            <img
+              src={craftImg}
+              alt="Japanese metallurgical sword forging process close-up"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <p className="eyebrow">The Origin</p>
+            <h2 className="font-display text-4xl md:text-5xl lg:text-6xl mt-4 leading-[1.1] uppercase">
+              Forged in Seki, <br />
+              <span className="italic text-gold">the sword capital.</span>
+            </h2>
+            <p className="mt-6 text-muted-foreground leading-relaxed">
+              Since the 13th century, Seki, Japan has been celebrated as the historic heart of blade craft. It was in Seki that master swordsmiths perfected the metallurgical methods of layering, heating, and sharpening steel to create samurai swords of legendary strength and razor sharpness.
+            </p>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              Every Katana Edge shear is built on this foundation. We utilize these same generational hand-honing techniques, refining the convex edges to microscopic precision. The result is a cutting tool that holds its edge through thousands of cuts and feels like a natural extension of a stylist's hand.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="py-24 md:py-32 bg-card border-y border-border">
         <div className="container-luxe">
@@ -331,7 +360,7 @@ function HomePage() {
                 name: "#f7f7ff",
                 designation: "#e1e1e1",
                 testimony: "#f1f1f7",
-                arrowBackground: "#d4af37",
+                arrowBackground: "#E5D3B3",
                 arrowForeground: "#141414",
                 arrowHoverBackground: "#f7f7ff",
               }}

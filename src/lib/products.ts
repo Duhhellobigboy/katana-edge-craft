@@ -50,7 +50,7 @@ export const products: Product[] = [
     tagline: "Stable, precise dry and wet cutting.",
     price: 1099.99,
     image: microslitImg1,
-    gallery: [microslitImg1, microslitImg2, microslitImg3, microslitImg4],
+    gallery: [microslitImg1, microslitImg2, microslitImg3],
     video: microslitVideo,
     rating: 4.9,
     reviewCount: 892,
