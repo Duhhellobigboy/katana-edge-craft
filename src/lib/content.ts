@@ -24,16 +24,16 @@ export const DEFAULT_FAQS = [
 ];
 
 export const DEFAULT_REVIEWS = [
-  { name: "Marcus Vega", role: "Creative Director · Brooklyn", quote: "Fujisan delivers the cleanest blending I've used. My fades and transitions drop into place in a single pass.", rating: 5 },
-  { name: "Brenna", role: "Ame Salon", quote: "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability.", rating: 5 },
-  { name: "Laura Wright", role: "Laura Studio", quote: "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.", rating: 5 },
-  { name: "Devon Hill", role: "Salon Owner · Chicago", quote: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
-  { name: "Sofia Marín", role: "Stylist Educator · Madrid", quote: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
-  { name: "James Okafor", role: "Session Stylist · London", quote: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5 },
-  { name: "Priya Shah", role: "Senior Stylist · Mumbai", quote: "The convex edge slices through thick textures effortlessly. Total game changer.", rating: 5 },
-  { name: "Lena Vogel", role: "Salon Owner · Berlin", quote: "Build quality you can feel. Heavy where it matters, weightless where it counts.", rating: 5 },
-  { name: "Carlos Rivera", role: "Master Stylist · Miami", quote: "Lifetime sharpening sealed the deal. These will be with me for my entire career.", rating: 5 },
-  { name: "Hannah Chen", role: "Stylist · Vancouver", quote: "Worth every penny. My wrist no longer aches after a 10-hour day.", rating: 5 },
+  { name: "Marcus Vega", role: "Creative Director · Brooklyn", quote: "Fujisan delivers the cleanest blending I've used. My fades and transitions drop into place in a single pass.", rating: 5, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Brenna", role: "Ame Salon", quote: "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability.", rating: 5, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Laura Wright", role: "Laura Studio", quote: "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.", rating: 5, avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Devon Hill", role: "Salon Owner · Chicago", quote: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Sofia Marín", role: "Stylist Educator · Madrid", quote: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5, avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "James Okafor", role: "Session Stylist · London", quote: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5, avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Priya Shah", role: "Senior Stylist · Mumbai", quote: "The convex edge slices through thick textures effortlessly. Total game changer.", rating: 5, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Lena Vogel", role: "Salon Owner · Berlin", quote: "Build quality you can feel. Heavy where it matters, weightless where it counts.", rating: 5, avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Carlos Rivera", role: "Master Stylist · Miami", quote: "Lifetime sharpening sealed the deal. These will be with me for my entire career.", rating: 5, avatar: "https://images.unsplash.com/photo-1500048993953-d23a436266cf?auto=format&fit=crop&q=80&w=120&h=120" },
+  { name: "Hannah Chen", role: "Stylist · Vancouver", quote: "Worth every penny. My wrist no longer aches after a 10-hour day.", rating: 5, avatar: "https://images.unsplash.com/photo-1534751516642-a131ffd10b7c?auto=format&fit=crop&q=80&w=120&h=120" },
 ];
 
 export async function fetchSiteContent(): Promise<Record<string, string>> {
@@ -75,7 +75,7 @@ export async function fetchFaqs(): Promise<{ question: string; answer: string }[
   }
 }
 
-export async function fetchTestimonials(): Promise<{ name: string; role: string; quote: string; rating: number }[]> {
+export async function fetchTestimonials(): Promise<{ name: string; role: string; quote: string; rating: number; avatar?: string }[]> {
   try {
     const { data, error } = await supabase
       .from("testimonials")
@@ -84,19 +84,24 @@ export async function fetchTestimonials(): Promise<{ name: string; role: string;
       .order("sort_order", { ascending: true });
 
     if (error || !data || data.length === 0) {
-      return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating }));
+      return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating, avatar: r.avatar }));
     }
 
     // Since our database testimonials table only has name, quote, rating, sort_order,
     // let's parse a default role or handle it gracefully. We fallback role to "Verified Professional" if null.
-    return data.map((d: any) => ({
-      name: d.name,
-      role: d.role || "Verified Professional",
-      quote: d.quote,
-      rating: d.rating || 5,
-    }));
+    return data.map((d: any) => {
+      // Find matching default review to reuse its Unsplash avatar if possible
+      const match = DEFAULT_REVIEWS.find(r => r.name.toLowerCase() === d.name.toLowerCase());
+      return {
+        name: d.name,
+        role: d.role || "Verified Professional",
+        quote: d.quote,
+        rating: d.rating || 5,
+        avatar: match?.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120&h=120`
+      };
+    });
   } catch {
-    return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating }));
+    return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating, avatar: r.avatar }));
   }
 }
 

@@ -40,12 +40,12 @@ const trustItems = [
 ];
 
 const whyItems = [
-  { icon: Sparkles, title: "Precision Cutting", body: "Hand-honed convex edges deliver glass-clean cuts with zero pull, zero push." },
-  { icon: Award, title: "Japanese-Inspired Design", body: "Forms refined over generations of craft — distilled into a working tool." },
-  { icon: Hand, title: "Professional Comfort", body: "Offset ergonomics drop your thumb and unload wrist tension across long days." },
-  { icon: Shield, title: "Long Lasting Sharpness", body: "60–62 HRC hardened steel holds its edge through thousands of cuts." },
-  { icon: Hammer, title: "Built For Daily Use", body: "Engineered for the chair — not the showroom. Reliable cut after cut." },
-  { icon: Users, title: "Trusted By Professionals", body: "Used in salons and barbershops in 40+ countries. Backed by a lifetime guarantee." },
+  { icon: Sparkles, title: "Precision Cutting", body: "Hand-honed convex edges deliver clean, effortless cuts with exceptional control." },
+  { icon: Award, title: "Seki-Inspired Craftsmanship", body: "Drawing from the blade-making heritage of Seki, Japan, every detail is refined for balance and precision." },
+  { icon: Hand, title: "Professional Comfort", body: "Offset ergonomics reduce fatigue and support all-day performance." },
+  { icon: Shield, title: "Long Lasting Sharpness", body: "Premium steel construction maintains a precise cutting edge through thousands of cuts." },
+  { icon: Hammer, title: "Built For Daily Use", body: "Created for professionals who depend on consistency every day." },
+  { icon: Users, title: "Trusted Worldwide", body: "Chosen by stylists and barbers across more than 40 countries." },
 ];
 
 const testimonials = [
@@ -103,48 +103,25 @@ function HomePage() {
   return (
     <Layout>
       {/* HERO */}
-      <section className="relative min-h-[95vh] flex items-center bg-[#0a0a0a] overflow-hidden pt-28 pb-16 lg:py-24">
+      <section className="relative min-h-[95vh] flex items-center bg-[#0B0B0B] overflow-hidden pt-28 pb-16 lg:py-24 washi-texture">
         <div className="container-luxe relative z-10 w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center h-full">
           {/* LEFT SIDE (TEXT & CTA) */}
           <div className="animate-fade-up pt-8 lg:pt-12 lg:pr-4 flex flex-col justify-center">
             {/* Professional Rating / Avatar Group */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex -space-x-2">
-                {[
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100&h=100",
-                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100",
-                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100&h=100",
-                  "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=100&h=100",
-                ].map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt="Stylist avatar"
-                    className="size-8 rounded-full border border-black object-cover"
-                  />
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-sm font-bold text-white tracking-wide">4.9 / 5</span>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="size-3 fill-gold text-gold" />
-                  ))}
-                </div>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest ml-1 font-semibold">
-                  1,000+ Satisfied Stylists · 1,000+ Stylists Globally
-                </span>
-              </div>
+            <div className="flex items-center w-fit mb-6 rounded-full border border-border bg-[#111111] px-3.5 py-1.5 shadow shadow-black/5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Trusted by <strong className="font-medium text-foreground">10K+</strong> stylists.
+              </p>
             </div>
 
             {/* Headline */}
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.2rem] leading-[0.9] text-white tracking-tight normal-case whitespace-pre-line">
-              {formatHeroTitle(content["home.hero.title"] || "BUILT FOR Stylers\nWHO cut TO WIN")}
+              {formatHeroTitle(content["home.hero.title"] || "Forged In Tradition.\nBuilt For Modern Stylists.")}
             </h1>
 
             {/* Subtitle */}
             <p className="mt-6 text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed">
-              {content["home.hero.subtitle"] || "Elite thinning and micro slit scissors for cleaner control, smoother blends, and sharper finishes."}
+              {content["home.hero.subtitle"] || "Professional shears inspired by generations of Japanese blade craftsmanship and engineered for exceptional precision, balance, and performance."}
             </p>
 
             {/* Primary CTAs */}
@@ -160,7 +137,7 @@ function HomePage() {
                 className="inline-flex items-center justify-between bg-black border border-white/20 hover:border-gold px-6 py-4 transition-all duration-300 group gap-5 w-full sm:w-auto"
               >
                 <span className="text-xs uppercase tracking-[0.25em] font-bold text-white group-hover:text-gold transition-colors">
-                  SHOP THE STORE
+                  Explore The Collection
                 </span>
                 <div className="h-6 w-px bg-white/10" />
                 <img
@@ -220,11 +197,11 @@ function HomePage() {
       </section>
 
       {/* MARQUEE */}
-      <section className="py-8 border-y border-border overflow-hidden bg-card">
+      <section className="py-8 border-y border-border overflow-hidden bg-card washi-texture">
         <div className="flex gap-16 animate-marquee whitespace-nowrap">
           {[...Array(2)].flatMap((_, i) =>
-            ["1,000+ Stylists Globally", "4.9/5 Verified Rating", "Seki Japan Sword Tradition", "Convex Hand-Honed Edge", "440C Cobalt Steel", "Lifetime Sharpening", "60-Day Trial"].map((t, j) => (
-              <span key={`${i}-${j}`} className="text-xs uppercase tracking-[0.32em] text-muted-foreground">
+            ["Trusted Worldwide", "Inspired By Seki Craftsmanship", "Hand-Honed Precision", "Lifetime Sharpening", "Professional Performance", "Trusted Worldwide"].map((t, j) => (
+              <span key={`${i}-${j}`} className="text-xs uppercase tracking-[0.32em] text-muted-foreground font-medium">
                 {t} <span className="text-gold ml-16">·</span>
               </span>
             ))
@@ -233,17 +210,17 @@ function HomePage() {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="py-24 md:py-32">
+      <section className="py-32 md:py-40 washi-texture">
         <div className="container-luxe">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div className="max-w-xl">
               <p className="eyebrow">The Collection</p>
               <h2 className="font-display text-4xl md:text-6xl mt-4 leading-tight">
-                Two tools. <span className="italic text-gold">Endless cuts.</span>
+                Two Instruments. <span className="italic text-gold">One Philosophy.</span>
               </h2>
             </div>
-            <p className="text-muted-foreground max-w-md">
-              Each Katana Edge shear is engineered for a specific role in the chair — and built to a single uncompromising standard.
+            <p className="text-muted-foreground max-w-md leading-relaxed text-sm">
+              Every Katana Edge shear is designed with purpose, balancing centuries of Japanese blade philosophy with the demands of modern salon work.
             </p>
           </div>
 
@@ -256,12 +233,12 @@ function HomePage() {
       </section>
 
       {/* WHY KATANA EDGE */}
-      <section className="py-24 md:py-32 bg-card border-y border-border">
+      <section className="py-32 md:py-40 bg-card border-y border-border washi-texture">
         <div className="container-luxe">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <p className="eyebrow">Why Katana Edge</p>
+            <p className="eyebrow">Heritage</p>
             <h2 className="font-display text-4xl md:text-6xl mt-4 leading-tight">
-              Engineered for the working professional
+              Precision Rooted In Tradition
             </h2>
           </div>
 
@@ -280,7 +257,7 @@ function HomePage() {
       </section>
 
       {/* CRAFTSMANSHIP */}
-      <section className="relative py-32 md:py-40 overflow-hidden">
+      <section className="relative py-32 md:py-40 overflow-hidden washi-texture">
         <div className="absolute inset-0">
           <img src={craftImg} alt="Premium Japanese steel scissor blade close-up" width={1920} height={1080} loading="lazy" className="w-full h-full object-cover opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
@@ -289,18 +266,18 @@ function HomePage() {
           <div className="max-w-2xl">
             <p className="eyebrow">Craftsmanship</p>
             <h2 className="font-display text-4xl md:text-6xl mt-4 leading-tight">
-              Every cut starts with <span className="italic text-gold">better tools.</span>
+              The Art Behind Every Cut
             </h2>
-            <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-              We don't manufacture scissors. We forge instruments — refined through centuries of Japanese metallurgical tradition and shaped for the modern professional's hand.
+            <p className="mt-6 text-base text-muted-foreground leading-relaxed">
+              We believe a shear should feel like an extension of the hand. Inspired by the traditions of Japanese blade makers, every Katana Edge shear is shaped for precision, balance, and lasting performance.
             </p>
 
             <div className="mt-12 space-y-8">
               {[
-                { n: "01", t: "Blade Design", d: "Convex hollow-ground edge. Geometry that slices rather than crushes." },
-                { n: "02", t: "Steel Quality", d: "440C and ATS-314 cobalt alloy. Hardened to 60–62 HRC for sustained edge retention." },
-                { n: "03", t: "Ergonomics", d: "Offset handle architecture engineered to reduce thumb and wrist strain." },
-                { n: "04", t: "Precision Manufacturing", d: "Each shear is hand-honed, hand-tested, and serialized before it ships." },
+                { n: "01", t: "Blade Design", d: "Convex geometry engineered for effortless slicing performance." },
+                { n: "02", t: "Steel Quality", d: "Premium Japanese steel selected for durability and edge retention." },
+                { n: "03", t: "Ergonomics", d: "Balanced architecture designed to support natural movement." },
+                { n: "04", t: "Precision Manufacturing", d: "Hand-finished, inspected, and refined to exacting standards." },
               ].map((s) => (
                 <div key={s.n} className="flex gap-6 group">
                   <span className="font-display text-3xl text-gold/50 group-hover:text-gold transition-colors">{s.n}</span>
@@ -316,7 +293,7 @@ function HomePage() {
       </section>
 
       {/* SEKI JAPAN HERITAGE */}
-      <section className="py-24 md:py-32 border-t border-border bg-[#050505]">
+      <section className="py-32 md:py-40 border-t border-border bg-[#0B0B0B] washi-texture">
         <div className="container-luxe grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div className="product-image-wrap aspect-video md:aspect-square max-h-[500px]">
             <img
@@ -327,27 +304,26 @@ function HomePage() {
             />
           </div>
           <div>
-            <p className="eyebrow">The Origin</p>
+            <p className="eyebrow">Our Heritage</p>
             <h2 className="font-display text-4xl md:text-5xl lg:text-6xl mt-4 leading-[1.1] uppercase">
-              Forged in Seki, <br />
-              <span className="italic text-gold">the sword capital.</span>
+              Born From The Legacy Of Seki.
             </h2>
-            <p className="mt-6 text-muted-foreground leading-relaxed">
-              Since the 13th century, Seki, Japan has been celebrated as the historic heart of blade craft. It was in Seki that master swordsmiths perfected the metallurgical methods of layering, heating, and sharpening steel to create samurai swords of legendary strength and razor sharpness.
+            <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
+              For more than 700 years, Seki, Japan has been recognized as one of the world's great centers of blade craftsmanship. The same pursuit of precision that guided master swordsmiths continues to inspire the tools we create today.
             </p>
-            <p className="mt-4 text-muted-foreground leading-relaxed">
-              Every Katana Edge shear is built on this foundation. We utilize these same generational hand-honing techniques, refining the convex edges to microscopic precision. The result is a cutting tool that holds its edge through thousands of cuts and feels like a natural extension of a stylist's hand.
+            <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+              Katana Edge draws from this heritage, combining traditional hand-finishing methods with modern engineering to produce shears trusted by professionals around the world. Every edge is refined for exceptional sharpness, lasting performance, and effortless control.
             </p>
           </div>
         </div>
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="py-24 md:py-32 bg-card border-y border-border">
+      <section className="py-32 md:py-40 bg-card border-y border-border washi-texture">
         <div className="container-luxe">
           <div className="text-center mb-16">
             <p className="eyebrow">Trusted By Professionals</p>
-            <h2 className="font-display text-4xl md:text-6xl mt-4">What the chair says</h2>
+            <h2 className="font-display text-4xl md:text-6xl mt-4">Trusted By Professionals</h2>
           </div>
           <div
             className="relative mx-auto flex items-center justify-center"
@@ -360,8 +336,8 @@ function HomePage() {
                 name: "#f7f7ff",
                 designation: "#e1e1e1",
                 testimony: "#f1f1f7",
-                arrowBackground: "#E5D3B3",
-                arrowForeground: "#141414",
+                arrowBackground: "#D8C7A1",
+                arrowForeground: "#0B0B0B",
                 arrowHoverBackground: "#f7f7ff",
               }}
               fontSizes={{
@@ -377,7 +353,7 @@ function HomePage() {
       <LeadForm variant="compact" />
 
       {/* FAQ */}
-      <section className="py-24 md:py-32">
+      <section className="py-32 md:py-40 washi-texture">
         <div className="container-luxe max-w-4xl">
           <div className="text-center mb-16">
             <p className="eyebrow">Common Questions</p>
@@ -399,21 +375,18 @@ function HomePage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative py-32 md:py-40 overflow-hidden border-t border-border">
+      <section className="relative py-40 md:py-48 overflow-hidden border-t border-border washi-texture">
         <div className="absolute inset-0">
-          <img src={shopImg} alt="Premium barbershop interior" width={1920} height={1080} loading="lazy" className="w-full h-full object-cover opacity-30" />
+          <img src={craftImg} alt="Premium Japanese steel craftsmanship" width={1920} height={1080} loading="lazy" className="w-full h-full object-cover opacity-15" />
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
         </div>
         <div className="container-luxe relative text-center max-w-3xl">
-          <p className="eyebrow">Upgrade Your Craft</p>
-          <h2 className="font-display text-5xl md:text-7xl mt-6 leading-[0.95]">
-            Upgrade your <span className="italic text-gold">cutting experience.</span>
+          <p className="eyebrow">Master Your Craft</p>
+          <h2 className="font-display text-3xl md:text-5xl mt-6 leading-relaxed">
+            Experience the precision trusted by professionals and inspired by generations of Japanese blade craftsmanship.
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground">
-            Join the professionals who trust Katana Edge every day.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3 justify-center">
-            <Link to="/products" className="btn-gold">Join Now <ArrowRight className="size-4" /></Link>
+          <div className="mt-12 flex flex-wrap gap-3 justify-center">
+            <Link to="/products" className="btn-gold">Explore The Collection <ArrowRight className="size-4" /></Link>
             <Link to="/products" className="btn-ghost-light">Shop Now</Link>
             <a href="#contact" className="btn-ghost-light">
               Talk to a specialist

@@ -10,7 +10,7 @@ export function Footer() {
             Katana<span className="text-gold">·</span>Edge
           </Link>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xs">
-            Precision crafted. Professionally trusted. Premium barber and stylist shears engineered for the working professional.
+            Inspired by Japanese craftsmanship. Trusted by professionals worldwide. Premium shears engineered for exceptional performance.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="container-luxe py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Katana Edge. All rights reserved.</p>
-          <p className="tracking-[0.18em] uppercase">Precision Crafted · Professionally Trusted</p>
+          <p className="tracking-[0.18em] uppercase text-[10px] text-muted-foreground/85">Crafted With Precision · Inspired By Tradition</p>
         </div>
       </div>
     </footer>

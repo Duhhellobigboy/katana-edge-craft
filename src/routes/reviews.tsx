@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
-import { Star, Quote } from "lucide-react";
+import { Star } from "lucide-react";
 import { fetchTestimonials } from "@/lib/content";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/reviews")({
   loader: () => fetchTestimonials(),
@@ -39,17 +40,38 @@ function ReviewsPage() {
         <div className="container-luxe">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reviews.map((r) => (
-              <figure key={r.name} className="luxe-card p-8 relative">
-                <Quote className="absolute top-6 right-6 size-7 text-gold/20" />
-                <div className="flex gap-0.5 mb-3">
-                  {Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="size-3.5 fill-gold text-gold" />)}
+              <div
+                key={r.name}
+                className="luxe-card p-6 bg-card border border-border/40 rounded-sm relative flex flex-col justify-between hover:border-gold/30 transition-all duration-300"
+              >
+                <div>
+                  {/* Instagram-style Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <Avatar className="size-10 border border-border">
+                      {r.avatar && <AvatarImage src={r.avatar} alt={r.name} className="object-cover" />}
+                      <AvatarFallback className="bg-secondary text-gold font-semibold text-xs">
+                        {r.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-sm text-foreground leading-snug">{r.name}</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{r.role}</p>
+                    </div>
+                  </div>
+
+                  {/* Star Rating */}
+                  <div className="flex gap-0.5 mb-3.5">
+                    {Array.from({ length: r.rating }).map((_, i) => (
+                      <Star key={i} className="size-3.5 fill-gold text-gold" />
+                    ))}
+                  </div>
+
+                  {/* Quote content */}
+                  <blockquote className="text-sm text-muted-foreground/90 leading-relaxed font-sans">
+                    "{r.quote}"
+                  </blockquote>
                 </div>
-                <blockquote className="font-display text-lg leading-snug">"{r.quote}"</blockquote>
-                <figcaption className="mt-6 pt-6 border-t border-border">
-                  <p className="font-medium text-sm">{r.name}</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] mt-1">{r.role}</p>
-                </figcaption>
-              </figure>
+              </div>
             ))}
           </div>
         </div>
