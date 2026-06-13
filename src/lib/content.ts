@@ -134,8 +134,49 @@ export async function fetchDbProductBySlug(slug: string, fallbackProduct: any): 
       useCases: Array.isArray(data.use_cases) && data.use_cases.length > 0 ? data.use_cases : fallbackProduct.useCases,
       specs: Array.isArray(data.specs) && data.specs.length > 0 ? data.specs : fallbackProduct.specs,
       faq: Array.isArray(data.faq) && data.faq.length > 0 ? data.faq : fallbackProduct.faq,
+      active: data.active !== null && data.active !== undefined ? data.active : fallbackProduct.active,
     };
   } catch {
     return fallbackProduct;
   }
 }
+
+export async function fetchAllDbProducts(fallbackProducts: any[]): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*");
+
+    if (error || !data || data.length === 0) {
+      return fallbackProducts;
+    }
+
+    return fallbackProducts.map((fallback) => {
+      const dbProduct = data.find((p) => p.slug === fallback.slug);
+      if (!dbProduct) {
+        return fallback;
+      }
+      return {
+        ...fallback,
+        name: dbProduct.name,
+        tagline: dbProduct.tagline || fallback.tagline,
+        price: dbProduct.price_cents ? dbProduct.price_cents / 100 : fallback.price,
+        compareAt: dbProduct.compare_at_cents ? dbProduct.compare_at_cents / 100 : fallback.compareAt,
+        image: dbProduct.image_url || fallback.image,
+        rating: dbProduct.rating ? Number(dbProduct.rating) : fallback.rating,
+        reviewCount: dbProduct.review_count !== null && dbProduct.review_count !== undefined ? dbProduct.review_count : fallback.reviewCount,
+        shortDescription: dbProduct.short_description || fallback.shortDescription,
+        longDescription: dbProduct.long_description || fallback.longDescription,
+        features: Array.isArray(dbProduct.features) && dbProduct.features.length > 0 ? dbProduct.features : fallback.features,
+        benefits: Array.isArray(dbProduct.benefits) && dbProduct.benefits.length > 0 ? dbProduct.benefits : fallback.benefits,
+        useCases: Array.isArray(dbProduct.use_cases) && dbProduct.use_cases.length > 0 ? dbProduct.use_cases : fallback.useCases,
+        specs: Array.isArray(dbProduct.specs) && dbProduct.specs.length > 0 ? dbProduct.specs : fallback.specs,
+        faq: Array.isArray(dbProduct.faq) && dbProduct.faq.length > 0 ? dbProduct.faq : fallback.faq,
+        active: dbProduct.active !== null && dbProduct.active !== undefined ? dbProduct.active : fallback.active,
+      };
+    });
+  } catch {
+    return fallbackProducts;
+  }
+}
+

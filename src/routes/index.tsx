@@ -12,8 +12,10 @@ import craftImg from "@/assets/craft-steel.jpg";
 import shopImg from "@/assets/barbershop.jpg";
 import testimonialProfessional1 from "@/assets/testimonials/professional-1.png";
 import testimonialProfessional2 from "@/assets/testimonials/professional-2.png";
-import testimonialProfessional3 from "@/assets/testimonials/professional-3.png";
+import testimonialProfessional3 from "@/assets/testimonials/professional-3.jpg";
 import { fetchSiteContent } from "@/lib/content";
+import { getAllDbProducts } from "@/lib/products";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -27,7 +29,8 @@ export const Route = createFileRoute("/")({
   }),
   loader: async () => {
     const content = await fetchSiteContent();
-    return { content };
+    const dbProducts = await getAllDbProducts();
+    return { content, products: dbProducts };
   },
   component: HomePage,
 });
@@ -65,9 +68,9 @@ const testimonials = [
   },
   {
     quote:
-      "The edge retention on the Micro Slit is unbelievable. I cut through heavy dry textures all day with zero hand strain.",
-    name: "Evelyn Carter",
-    designation: "Senior Stylist & Educator · Los Angeles",
+      "Micro Slit shears are incredibly comfortable and precise—easily the best I’ve used. Outstanding quality and design. I’ll definitely buy again.",
+    name: "Maureen Enciso",
+    designation: "Stylist Boutique Owner · Seattle",
     src: testimonialProfessional3,
   },
 ];
@@ -99,7 +102,7 @@ function formatHeroTitle(title: string) {
 }
 
 function HomePage() {
-  const { content } = Route.useLoaderData();
+  const { content, products } = Route.useLoaderData();
   return (
     <Layout>
       {/* HERO */}
@@ -225,9 +228,16 @@ function HomePage() {
           </div>
 
           <div className="mx-auto grid max-w-lg gap-6 sm:max-w-4xl md:grid-cols-2 md:gap-7 lg:max-w-5xl">
-            {products.map((p) => (
+            {products.filter((p) => p.featured).map((p) => (
               <ProductCard key={p.slug} product={p} compact />
             ))}
+          </div>
+
+          <div className="mt-16 text-center">
+            <Link to="/products" className="btn-gold inline-flex items-center gap-2 font-semibold">
+              Shop All Shears
+              <ArrowRight className="size-4" />
+            </Link>
           </div>
         </div>
       </section>

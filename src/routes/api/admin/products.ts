@@ -5,7 +5,15 @@ import { createSupabaseServerClient } from "@/lib/supabase.server";
 
 // Define strict validation schema for incoming product copy updates
 const productUpdateSchema = z.object({
-  slug: z.enum(["fujisan-thinning-shears", "micro-slit-shears"]),
+  slug: z.enum([
+    "micro-slit-shears",
+    "fujisan-thinning-shears",
+    "thunder-shears",
+    "double-swivel-shears",
+    "naruto-shears",
+    "karakuri-shears",
+    "bamboo-shears",
+  ]),
   name: z.string().min(1, "Name cannot be empty"),
   tagline: z.string().default(""),
   shortDescription: z.string().default(""),

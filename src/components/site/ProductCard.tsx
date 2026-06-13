@@ -15,16 +15,26 @@ export function ProductCard({
       params={{ slug: product.slug }}
       className="group luxe-card block overflow-hidden"
     >
-      <div className={compact ? "product-image-wrap aspect-[3/4]" : "product-image-wrap aspect-[4/5]"}>
+      <div className="product-image-wrap aspect-[4/5]">
         <img
           src={product.image}
           alt={`${product.name} — ${product.tagline}`}
           width={1024}
           height={1024}
           loading="lazy"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain p-2"
         />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
+          {product.bestSeller && (
+            <span className="text-[0.65rem] font-bold uppercase tracking-[0.18em] bg-gold text-black px-2 py-1 shadow-sm">
+              Best Seller
+            </span>
+          )}
+          {product.active === false && (
+            <span className="text-[0.65rem] font-bold uppercase tracking-[0.18em] bg-[#1a1a1a] text-gold border border-gold/30 px-2 py-1 shadow-sm">
+              Coming Soon
+            </span>
+          )}
           {product.compareAt && (
             <span className="text-[0.65rem] uppercase tracking-[0.18em] bg-gold text-gold-foreground px-2 py-1">
               Save ${product.compareAt - product.price}
@@ -33,14 +43,18 @@ export function ProductCard({
         </div>
       </div>
       <div className={compact ? "p-5 md:p-6" : "p-6 md:p-8"}>
-        <div className={`flex items-center gap-1 ${compact ? "mb-2.5" : "mb-3"}`}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className="size-3.5 fill-gold text-gold" />
-          ))}
-          <span className="text-xs text-muted-foreground ml-2">
-            {product.rating} · {product.reviewCount.toLocaleString()} reviews
-          </span>
-        </div>
+        {product.reviewCount !== undefined && product.reviewCount > 0 ? (
+          <div className={`flex items-center gap-1 ${compact ? "mb-2.5" : "mb-3"}`}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className="size-3.5 fill-gold text-gold" />
+            ))}
+            <span className="text-xs text-muted-foreground ml-2">
+              {product.rating} · {product.reviewCount.toLocaleString()} reviews
+            </span>
+          </div>
+        ) : (
+          <div className={`h-4 ${compact ? "mb-2.5" : "mb-3"}`} />
+        )}
         <h3
           className={
             compact
