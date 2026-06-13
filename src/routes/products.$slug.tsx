@@ -14,12 +14,10 @@ import {
 import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
-import { formatProductPrice, getProduct, products, type Product } from "@/lib/products";
+import { formatProductPrice, getProduct, products, type Product, getDbProductBySlug, getAllDbProducts } from "@/lib/products";
 import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
-
-import { fetchDbProductBySlug } from "@/lib/content";
 
 export const Route = createFileRoute("/products/$slug")({
   loader: async ({ params }) => {
@@ -39,8 +37,9 @@ export const Route = createFileRoute("/products/$slug")({
     const product = getProduct(params.slug);
     if (!product) throw notFound();
 
-    const dbProduct = await fetchDbProductBySlug(params.slug, product);
-    return { product: dbProduct };
+    const dbProduct = await getDbProductBySlug({ data: params.slug });
+    const dbProducts = await getAllDbProducts();
+    return { product: dbProduct, allProducts: dbProducts };
   },
   head: ({ loaderData }) => ({
     meta: loaderData ? [
@@ -84,16 +83,105 @@ type GallerySelection =
   | { type: "image"; src: string }
   | { type: "video"; src: string };
 
+function splitLongDescription(text: string): string[] {
+  if (!text) return [];
+  const trimmed = text.trim();
+  const paragraphs = trimmed.split(/\n\s*\n/).filter(Boolean);
+  if (paragraphs.length > 1) {
+    return paragraphs;
+  }
+  
+  // It's a single paragraph, let's split it cleanly if it matches one of our known products
+  if (trimmed.includes("Thunder is engineered with thick, leaf-shaped convex blades designed to slide through dense bulk texturing effortlessly.")) {
+    return [
+      "Thunder is engineered with thick, leaf-shaped convex blades.",
+      "They are designed to slide through dense bulk texturing effortlessly."
+    ];
+  }
+  if (trimmed.includes("Double Swivel features two fully independent rotating joints on the thumb ring to reduce repetitive strain injuries.")) {
+    return [
+      "Double Swivel features two fully independent rotating joints on the thumb ring.",
+      "These rotating joints work to reduce repetitive strain injuries."
+    ];
+  }
+  if (trimmed.includes("Naruto integrates hollowed blade cutouts to decrease weight while maintaining perfect tension for slide and weight reduction cuts.")) {
+    return [
+      "Naruto integrates hollowed blade cutouts to decrease weight.",
+      "This design maintains perfect tension for slide and weight reduction cuts."
+    ];
+  }
+  if (trimmed.includes("Karakuri combines structural stiffness with offset rings to protect wrists during heavy, block-style hair cuts.")) {
+    return [
+      "Karakuri combines structural stiffness with offset rings.",
+      "This combination helps protect wrists during heavy, block-style hair cuts."
+    ];
+  }
+  if (trimmed.includes("Bamboo offers a balanced body and convex edge that excels at wet blunt cutting and solid line construction.")) {
+    return [
+      "Bamboo offers a balanced body and convex edge.",
+      "This configuration excels at wet blunt cutting and solid line construction."
+    ];
+  }
+
+  // Fallback split for any other single-paragraph text matching our keywords
+  const splitKeywords = [
+    { key: " designed to ", replacement: [".\n\nThey are designed to ", ".\n\nDesigned to "] },
+    { key: " to reduce ", replacement: [".\n\nThese work to reduce ", ".\n\nTo reduce "] },
+    { key: " to decrease ", replacement: [".\n\nThis is designed to decrease ", ".\n\nTo decrease "] },
+    { key: " to protect ", replacement: [".\n\nThis helps to protect ", ".\n\nTo protect "] },
+    { key: " that excels at ", replacement: [".\n\nThis excels at ", ".\n\nThat excels at "] }
+  ];
+
+  for (const item of splitKeywords) {
+    if (trimmed.includes(item.key)) {
+      const parts = trimmed.split(item.key);
+      if (parts.length === 2) {
+        const first = parts[0].trim();
+        const second = parts[1].trim();
+        const ending = first.endsWith(".") ? "" : ".";
+        const newText = `${first}${ending}\n\n${item.replacement[0].replace(".\n\n", "")}${second}`;
+        return newText.split(/\n\s*\n/).filter(Boolean);
+      }
+    }
+  }
+
+  // If there are multiple sentences, split after the first or middle sentence
+  const sentences = trimmed.split(/(?<=\.)\s+/);
+  if (sentences.length >= 2) {
+    const mid = Math.ceil(sentences.length / 2);
+    return [
+      sentences.slice(0, mid).join(" "),
+      sentences.slice(mid).join(" ")
+    ];
+  }
+
+  return [trimmed];
+}
+
 function ProductPage() {
-  const { product } = Route.useLoaderData() as { product: Product };
+  const { product, allProducts } = Route.useLoaderData() as { product: Product; allProducts: Product[] };
   const [qty, setQty] = useState(1);
   const [showSticky, setShowSticky] = useState(false);
   const { addItem } = useCart();
-  const cross = products.filter((p) => p.slug !== product.slug);
-  const descriptionParagraphs = product.longDescription.split("\n\n");
+  
+  // Cross-sell only the first 2 other products from database to fit layout
+  const cross = allProducts
+    .filter((p) => p.slug !== product.slug)
+    .slice(0, 2);
+    
+  const descriptionParagraphs = splitLongDescription(product.longDescription);
+
+  // Filter out empty and duplicate images for clean single-image gallery display
+  const uniqueGallery = Array.from(
+    new Set(
+      [
+        ...(product.gallery && product.gallery.length > 0 ? product.gallery : [product.image])
+      ].filter(Boolean)
+    )
+  );
 
   const galleryItems: GallerySelection[] = [
-    ...(product.gallery ?? [product.image]).map(
+    ...uniqueGallery.map(
       (src): GallerySelection => ({ type: "image", src })
     ),
     ...(product.video ? [{ type: "video" as const, src: product.video }] : []),
@@ -109,6 +197,10 @@ function ProductPage() {
   }, []);
 
   const handleAddToCart = (quantity: number) => {
+    if (product.active === false) {
+      toast.error("This product is Coming Soon and cannot be purchased.");
+      return;
+    }
     addItem(
       {
         slug: product.slug,
@@ -130,7 +222,7 @@ function ProductPage() {
       <section className="py-12 md:py-20">
         <div className="container-luxe grid md:grid-cols-2 gap-10 lg:gap-16">
           <div className="space-y-4">
-            <div className="product-image-wrap aspect-square bg-[#f4f4f4] border border-border/40">
+            <div className="product-image-wrap aspect-square border border-border/40">
               {selectedGallery?.type === "video" ? (
                 <video
                   key={selectedGallery.src}
@@ -161,7 +253,7 @@ function ProductPage() {
                     key={`${item.type}-${item.src}`}
                     type="button"
                     onClick={() => setSelectedGalleryIndex(i)}
-                    className={`product-image-wrap aspect-square border transition-colors bg-[#f4f4f4] ${
+                    className={`product-image-wrap aspect-square border transition-colors ${
                       selectedGalleryIndex === i
                         ? "border-gold"
                         : "border-border hover:border-gold/60"
@@ -205,18 +297,20 @@ function ProductPage() {
               </p>
             )}
 
-            <div className="flex items-center gap-3 mt-5">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="size-4 fill-gold text-gold" />
-                ))}
+            {product.reviewCount !== undefined && product.reviewCount > 0 && (
+              <div className="flex items-center gap-3 mt-5">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="size-4 fill-gold text-gold" />
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {product.rating} · {product.reviewCount.toLocaleString()} verified reviews
+                </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                {product.rating} · {product.reviewCount.toLocaleString()} verified reviews
-              </span>
-            </div>
+            )}
 
-            <div className="mt-8 flex items-baseline gap-4">
+            <div className={`${product.reviewCount !== undefined && product.reviewCount > 0 ? "mt-8" : "mt-5"} flex items-baseline gap-4`}>
               <span className="font-display text-4xl text-gold">
                 {formatProductPrice(product.price)}
               </span>
@@ -238,46 +332,63 @@ function ProductPage() {
               ))}
             </div>
 
-            <div className="mt-8 flex items-center gap-4">
-              <div>
-                <div className="flex items-center border border-border">
-                  <button
-                    type="button"
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    disabled={qty <= 1}
-                    className="size-12 flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus className="size-4" />
-                  </button>
-                  <span className="w-12 text-center font-display text-lg">{qty}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQty(Math.min(MAX_CHECKOUT_QUANTITY, qty + 1))}
-                    disabled={qty >= MAX_CHECKOUT_QUANTITY}
-                    className="size-12 flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
-                    aria-label="Increase quantity"
-                  >
-                    <Plus className="size-4" />
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Maximum {MAX_CHECKOUT_QUANTITY} per product.
+            {product.active === false ? (
+              <div className="mt-8">
+                <button
+                  type="button"
+                  disabled
+                  className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed text-center justify-center animate-pulse"
+                >
+                  COMING SOON
+                </button>
+                <p className="mt-3 text-xs text-center text-muted-foreground">
+                  Checkout will become available when this product launches.
                 </p>
               </div>
-              <button
-                type="button"
-                className="btn-gold flex-1"
-                onClick={() => handleAddToCart(qty)}
-              >
-                Add To Cart — {formatProductPrice(product.price * qty)}
-                <ArrowRight className="size-4" />
-              </button>
-            </div>
+            ) : (
+              <>
+                <div className="mt-8 flex items-center gap-4">
+                  <div>
+                    <div className="flex items-center border border-border">
+                      <button
+                        type="button"
+                        onClick={() => setQty(Math.max(1, qty - 1))}
+                        disabled={qty <= 1}
+                        className="size-12 flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="size-4" />
+                      </button>
+                      <span className="w-12 text-center font-display text-lg">{qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(Math.min(MAX_CHECKOUT_QUANTITY, qty + 1))}
+                        disabled={qty >= MAX_CHECKOUT_QUANTITY}
+                        className="size-12 flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Maximum {MAX_CHECKOUT_QUANTITY} per product.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-gold flex-1"
+                    onClick={() => handleAddToCart(qty)}
+                  >
+                    Add To Cart — {formatProductPrice(product.price * qty)}
+                    <ArrowRight className="size-4" />
+                  </button>
+                </div>
 
-            <div className="mt-4 text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
-              <Shield className="size-3.5 text-gold" /> Secure checkout · Stripe-hosted payment
-            </div>
+                <div className="mt-4 text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
+                  <Shield className="size-3.5 text-gold" /> Secure checkout · Stripe-hosted payment
+                </div>
+              </>
+            )}
 
             <div className="mt-8 grid grid-cols-2 gap-px bg-border border border-border">
               {[
@@ -377,7 +488,7 @@ function ProductPage() {
         </div>
       </section>
 
-      {showSticky && (
+      {showSticky && product.active !== false && (
         <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border animate-fade-up">
           <div className="container-luxe py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">

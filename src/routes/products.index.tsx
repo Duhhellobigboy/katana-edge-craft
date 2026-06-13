@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/site/ProductCard";
-import { products } from "@/lib/products";
+import { getAllDbProducts } from "@/lib/products";
 
 export const Route = createFileRoute("/products/")({
+  loader: async () => {
+    const dbProducts = await getAllDbProducts();
+    const sortedProducts = [...dbProducts].sort(
+      (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)
+    );
+    return { products: sortedProducts };
+  },
   head: () => ({
     meta: [
       { title: "Shop Professional Barber Scissors & Shears | Katana Edge" },
@@ -18,6 +25,8 @@ export const Route = createFileRoute("/products/")({
 });
 
 function ShopPage() {
+  const { products } = Route.useLoaderData();
+
   return (
     <Layout>
       <section className="py-20 md:py-28 border-b border-border">
@@ -27,16 +36,17 @@ function ShopPage() {
             Shop <span className="italic text-gold">Katana Edge</span>
           </h1>
           <p className="mt-6 text-muted-foreground">
-            Two professional-grade shears. Built for the chair, refined for the hand, guaranteed for life.
+            Professional-grade shears. Built for the chair, refined for the hand, guaranteed for life.
           </p>
         </div>
       </section>
 
       <section className="py-20 md:py-28">
-        <div className="container-luxe grid md:grid-cols-2 gap-8">
+        <div className="container-luxe grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((p) => <ProductCard key={p.slug} product={p} />)}
         </div>
       </section>
     </Layout>
   );
 }
+

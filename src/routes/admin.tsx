@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   LogOut, ShieldAlert, Sparkles, LayoutDashboard, Package, HelpCircle, 
   MessageSquare, FileText, Plus, Trash2, Save, Loader2, ArrowUpRight 
@@ -7,7 +7,7 @@ import {
 import { checkAdminAuth } from "@/lib/admin.functions";
 import { fetchSiteContent, fetchFaqs, fetchTestimonials } from "@/lib/content";
 import { products as fallbackProducts } from "@/lib/products";
-import { supabase } from "@/lib/supabase";
+import { getAdminDbProducts } from "@/lib/products";
 import { Layout } from "@/components/site/Layout";
 import { toast } from "sonner";
 
@@ -34,11 +34,8 @@ export const Route = createFileRoute("/admin")({
     const faqs = await fetchFaqs();
     const testimonials = await fetchTestimonials();
     
-    // Fetch current product states from Supabase (public read)
-    const { data: dbProducts } = await supabase
-      .from("products")
-      .select("*")
-      .in("slug", ["fujisan-thinning-shears", "micro-slit-shears"]);
+    // Fetch all current product states from Supabase via server-side function to bypass RLS
+    const dbProducts = await getAdminDbProducts();
 
     return {
       siteContent,
@@ -65,51 +62,34 @@ function AdminPage() {
   const [seoDescription, setSeoDescription] = useState(siteContent["seo.description"] || "");
 
   // --- PRODUCTS COPY STATE ---
-  const fujisanFallback = fallbackProducts.find(p => p.slug === "fujisan-thinning-shears")!;
-  const fujisanDb = dbProducts.find(p => p.slug === "fujisan-thinning-shears");
-
-  const microslitFallback = fallbackProducts.find(p => p.slug === "micro-slit-shears")!;
-  const microslitDb = dbProducts.find(p => p.slug === "micro-slit-shears");
-
-  // Selected product state
-  const [selectedProduct, setSelectedProduct] = useState<"fujisan" | "microslit">("fujisan");
+  const [selectedProduct, setSelectedProduct] = useState("micro-slit-shears");
 
   // Product copywriting states initialized safely
-  const [prodNameFujisan, setProdNameFujisan] = useState(fujisanDb?.name || fujisanFallback.name);
-  const [prodTaglineFujisan, setProdTaglineFujisan] = useState(fujisanDb?.tagline || fujisanFallback.tagline);
-  const [prodShortFujisan, setProdShortFujisan] = useState(fujisanDb?.short_description || fujisanFallback.shortDescription);
-  const [prodLongFujisan, setProdLongFujisan] = useState(fujisanDb?.long_description || fujisanFallback.longDescription);
-  const [prodImageFujisan, setProdImageFujisan] = useState(fujisanDb?.image_url || fujisanFallback.image);
-  const [prodFeaturesFujisan, setProdFeaturesFujisan] = useState<any[]>(
-    fujisanDb?.features || fujisanFallback.features || []
-  );
-  const [prodBenefitsFujisan, setProdBenefitsFujisan] = useState<any[]>(
-    fujisanDb?.benefits || fujisanFallback.benefits || []
-  );
-  const [prodSpecsFujisan, setProdSpecsFujisan] = useState<any[]>(
-    fujisanDb?.specs || fujisanFallback.specs || []
-  );
-  const [prodFaqFujisan, setProdFaqFujisan] = useState<any[]>(
-    fujisanDb?.faq || fujisanFallback.faq || []
-  );
+  const [prodName, setProdName] = useState("");
+  const [prodTagline, setProdTagline] = useState("");
+  const [prodShort, setProdShort] = useState("");
+  const [prodLong, setProdLong] = useState("");
+  const [prodImage, setProdImage] = useState("");
+  const [prodFeatures, setProdFeatures] = useState<any[]>([]);
+  const [prodBenefits, setProdBenefits] = useState<any[]>([]);
+  const [prodSpecs, setProdSpecs] = useState<any[]>([]);
+  const [prodFaq, setProdFaq] = useState<any[]>([]);
 
-  const [prodNameMicroslit, setProdNameMicroslit] = useState(microslitDb?.name || microslitFallback.name);
-  const [prodTaglineMicroslit, setProdTaglineMicroslit] = useState(microslitDb?.tagline || microslitFallback.tagline);
-  const [prodShortMicroslit, setProdShortMicroslit] = useState(microslitDb?.short_description || microslitFallback.shortDescription);
-  const [prodLongMicroslit, setProdLongMicroslit] = useState(microslitDb?.long_description || microslitFallback.longDescription);
-  const [prodImageMicroslit, setProdImageMicroslit] = useState(microslitDb?.image_url || microslitFallback.image);
-  const [prodFeaturesMicroslit, setProdFeaturesMicroslit] = useState<any[]>(
-    microslitDb?.features || microslitFallback.features || []
-  );
-  const [prodBenefitsMicroslit, setProdBenefitsMicroslit] = useState<any[]>(
-    microslitDb?.benefits || microslitFallback.benefits || []
-  );
-  const [prodSpecsMicroslit, setProdSpecsMicroslit] = useState<any[]>(
-    microslitDb?.specs || microslitFallback.specs || []
-  );
-  const [prodFaqMicroslit, setProdFaqMicroslit] = useState<any[]>(
-    microslitDb?.faq || microslitFallback.faq || []
-  );
+  useEffect(() => {
+    const fallback = fallbackProducts.find(p => p.slug === selectedProduct);
+    const dbProduct = dbProducts.find((p: any) => p.slug === selectedProduct);
+    if (fallback) {
+      setProdName(dbProduct?.name || fallback.name || "");
+      setProdTagline(dbProduct?.tagline || fallback.tagline || "");
+      setProdShort(dbProduct?.short_description || fallback.shortDescription || "");
+      setProdLong(dbProduct?.long_description || fallback.longDescription || "");
+      setProdImage(dbProduct?.image_url || fallback.image || "");
+      setProdFeatures(dbProduct?.features || fallback.features || []);
+      setProdBenefits(dbProduct?.benefits || fallback.benefits || []);
+      setProdSpecs(dbProduct?.specs || fallback.specs || []);
+      setProdFaq(dbProduct?.faq || fallback.faq || []);
+    }
+  }, [selectedProduct, dbProducts]);
 
   const handleLogout = async () => {
     try {
@@ -156,34 +136,20 @@ function AdminPage() {
   };
 
   // --- SAVE PRODUCT COPY ---
-  const saveProductContent = async (key: "fujisan" | "microslit") => {
+  const saveProductContent = async (slug: string) => {
     setSaving(true);
-    const slug = key === "fujisan" ? "fujisan-thinning-shears" : "micro-slit-shears";
-    const payload = key === "fujisan" 
-      ? {
-          slug,
-          name: prodNameFujisan,
-          tagline: prodTaglineFujisan,
-          shortDescription: prodShortFujisan,
-          longDescription: prodLongFujisan,
-          image: prodImageFujisan,
-          features: prodFeaturesFujisan,
-          benefits: prodBenefitsFujisan,
-          specs: prodSpecsFujisan,
-          faq: prodFaqFujisan,
-        }
-      : {
-          slug,
-          name: prodNameMicroslit,
-          tagline: prodTaglineMicroslit,
-          shortDescription: prodShortMicroslit,
-          longDescription: prodLongMicroslit,
-          image: prodImageMicroslit,
-          features: prodFeaturesMicroslit,
-          benefits: prodBenefitsMicroslit,
-          specs: prodSpecsMicroslit,
-          faq: prodFaqMicroslit,
-        };
+    const payload = {
+      slug,
+      name: prodName,
+      tagline: prodTagline,
+      shortDescription: prodShort,
+      longDescription: prodLong,
+      image: prodImage,
+      features: prodFeatures,
+      benefits: prodBenefits,
+      specs: prodSpecs,
+      faq: prodFaq,
+    };
 
     try {
       const response = await fetch("/api/admin/products", {
@@ -351,11 +317,14 @@ function AdminPage() {
                       <h2 className="font-display text-xl uppercase tracking-wider text-white">Product Catalog</h2>
                       <select
                         value={selectedProduct}
-                        onChange={(e) => setSelectedProduct(e.target.value as "fujisan" | "microslit")}
+                        onChange={(e) => setSelectedProduct(e.target.value)}
                         className="bg-[#0a0a0a] border border-border text-sm text-gold py-1.5 px-3 rounded-sm font-semibold uppercase tracking-wider focus:outline-none focus:border-gold"
                       >
-                        <option value="fujisan">Fujisan Thinning</option>
-                        <option value="microslit">Micro Slit Straight</option>
+                        {fallbackProducts.map((p) => (
+                          <option key={p.slug} value={p.slug}>
+                            {p.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <button
@@ -364,7 +333,7 @@ function AdminPage() {
                       className="btn-gold !py-2 !px-4 text-xs font-bold"
                     >
                       {saving ? <Loader2 className="size-3.5 animate-spin text-black" /> : <Save className="size-3.5" />}
-                      Save {selectedProduct === "fujisan" ? "Fujisan" : "Micro Slit"} Copy
+                      Save {prodName} Copy
                     </button>
                   </div>
 
@@ -384,8 +353,8 @@ function AdminPage() {
                         <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Display Title</label>
                         <input
                           type="text"
-                          value={selectedProduct === "fujisan" ? prodNameFujisan : prodNameMicroslit}
-                          onChange={(e) => selectedProduct === "fujisan" ? setProdNameFujisan(e.target.value) : setProdNameMicroslit(e.target.value)}
+                          value={prodName}
+                          onChange={(e) => setProdName(e.target.value)}
                           className="w-full bg-[#0a0a0a] border border-border py-2 px-3 text-white focus:outline-none focus:border-gold rounded-sm"
                         />
                       </div>
@@ -393,8 +362,8 @@ function AdminPage() {
                         <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Tagline / Short description</label>
                         <input
                           type="text"
-                          value={selectedProduct === "fujisan" ? prodTaglineFujisan : prodTaglineMicroslit}
-                          onChange={(e) => selectedProduct === "fujisan" ? setProdTaglineFujisan(e.target.value) : setProdTaglineMicroslit(e.target.value)}
+                          value={prodTagline}
+                          onChange={(e) => setProdTagline(e.target.value)}
                           className="w-full bg-[#0a0a0a] border border-border py-2 px-3 text-white focus:outline-none focus:border-gold rounded-sm"
                         />
                       </div>
@@ -404,8 +373,8 @@ function AdminPage() {
                       <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Short Summary</label>
                       <input
                         type="text"
-                        value={selectedProduct === "fujisan" ? prodShortFujisan : prodShortMicroslit}
-                        onChange={(e) => selectedProduct === "fujisan" ? setProdShortFujisan(e.target.value) : setProdShortMicroslit(e.target.value)}
+                        value={prodShort}
+                        onChange={(e) => setProdShort(e.target.value)}
                         className="w-full bg-[#0a0a0a] border border-border py-2 px-3 text-white focus:outline-none focus:border-gold rounded-sm"
                       />
                     </div>
@@ -414,8 +383,8 @@ function AdminPage() {
                       <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Long Copy / Full description</label>
                       <textarea
                         rows={4}
-                        value={selectedProduct === "fujisan" ? prodLongFujisan : prodLongMicroslit}
-                        onChange={(e) => selectedProduct === "fujisan" ? setProdLongFujisan(e.target.value) : setProdLongMicroslit(e.target.value)}
+                        value={prodLong}
+                        onChange={(e) => setProdLong(e.target.value)}
                         className="w-full bg-[#0a0a0a] border border-border py-2.5 px-4 text-white focus:outline-none focus:border-gold rounded-sm"
                       />
                     </div>
@@ -424,9 +393,9 @@ function AdminPage() {
                       <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Product Image URL</label>
                       <input
                         type="text"
-                        value={selectedProduct === "fujisan" ? prodImageFujisan : prodImageMicroslit}
-                        onChange={(e) => selectedProduct === "fujisan" ? setProdImageFujisan(e.target.value) : setProdImageMicroslit(e.target.value)}
-                        placeholder="/assets/fujisan.jpg"
+                        value={prodImage}
+                        onChange={(e) => setProdImage(e.target.value)}
+                        placeholder="/products/thunder/main.webp"
                         className="w-full bg-[#0a0a0a] border border-border py-2 px-3 text-white focus:outline-none focus:border-gold rounded-sm font-mono text-xs"
                       />
                     </div>
@@ -439,8 +408,7 @@ function AdminPage() {
                           type="button"
                           onClick={() => {
                             const add = { title: "New Feature", description: "Details..." };
-                            if (selectedProduct === "fujisan") setProdFeaturesFujisan([...prodFeaturesFujisan, add]);
-                            else setProdFeaturesMicroslit([...prodFeaturesMicroslit, add]);
+                            setProdFeatures([...prodFeatures, add]);
                           }}
                           className="text-gold hover:underline text-xs uppercase tracking-wider font-semibold flex items-center gap-1"
                         >
@@ -448,7 +416,7 @@ function AdminPage() {
                         </button>
                       </div>
                       <div className="space-y-3">
-                        {(selectedProduct === "fujisan" ? prodFeaturesFujisan : prodFeaturesMicroslit).map((feat, idx) => (
+                        {prodFeatures.map((feat, idx) => (
                           <div key={idx} className="flex gap-3 items-start p-3 bg-black/20 border border-border/40 rounded-sm">
                             <div className="flex-1 grid sm:grid-cols-3 gap-3">
                               <input
@@ -456,9 +424,9 @@ function AdminPage() {
                                 value={feat.title}
                                 placeholder="Feature title"
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodFeaturesFujisan] : [...prodFeaturesMicroslit];
-                                  updated[idx].title = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdFeaturesFujisan(updated) : setProdFeaturesMicroslit(updated);
+                                  const updated = [...prodFeatures];
+                                  updated[idx] = { ...updated[idx], title: e.target.value };
+                                  setProdFeatures(updated);
                                 }}
                                 className="sm:col-span-1 bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -467,9 +435,9 @@ function AdminPage() {
                                 value={feat.description}
                                 placeholder="Feature description details..."
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodFeaturesFujisan] : [...prodFeaturesMicroslit];
-                                  updated[idx].description = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdFeaturesFujisan(updated) : setProdFeaturesMicroslit(updated);
+                                  const updated = [...prodFeatures];
+                                  updated[idx] = { ...updated[idx], description: e.target.value };
+                                  setProdFeatures(updated);
                                 }}
                                 className="sm:col-span-2 bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -477,9 +445,9 @@ function AdminPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const updated = selectedProduct === "fujisan" ? [...prodFeaturesFujisan] : [...prodFeaturesMicroslit];
+                                const updated = [...prodFeatures];
                                 updated.splice(idx, 1);
-                                selectedProduct === "fujisan" ? setProdFeaturesFujisan(updated) : setProdFeaturesMicroslit(updated);
+                                setProdFeatures(updated);
                               }}
                               className="text-muted-foreground hover:text-red-400 p-1.5 transition-colors"
                             >
@@ -498,8 +466,7 @@ function AdminPage() {
                           type="button"
                           onClick={() => {
                             const add = { title: "New Benefit", description: "Details..." };
-                            if (selectedProduct === "fujisan") setProdBenefitsFujisan([...prodBenefitsFujisan, add]);
-                            else setProdBenefitsMicroslit([...prodBenefitsMicroslit, add]);
+                            setProdBenefits([...prodBenefits, add]);
                           }}
                           className="text-gold hover:underline text-xs uppercase tracking-wider font-semibold flex items-center gap-1"
                         >
@@ -507,7 +474,7 @@ function AdminPage() {
                         </button>
                       </div>
                       <div className="space-y-3">
-                        {(selectedProduct === "fujisan" ? prodBenefitsFujisan : prodBenefitsMicroslit).map((ben, idx) => (
+                        {prodBenefits.map((ben, idx) => (
                           <div key={idx} className="flex gap-3 items-start p-3 bg-black/20 border border-border/40 rounded-sm">
                             <div className="flex-1 grid sm:grid-cols-3 gap-3">
                               <input
@@ -515,9 +482,9 @@ function AdminPage() {
                                 value={ben.title}
                                 placeholder="Benefit summary"
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodBenefitsFujisan] : [...prodBenefitsMicroslit];
-                                  updated[idx].title = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdBenefitsFujisan(updated) : setProdBenefitsMicroslit(updated);
+                                  const updated = [...prodBenefits];
+                                  updated[idx] = { ...updated[idx], title: e.target.value };
+                                  setProdBenefits(updated);
                                 }}
                                 className="sm:col-span-1 bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -526,9 +493,9 @@ function AdminPage() {
                                 value={ben.description}
                                 placeholder="Benefit detail..."
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodBenefitsFujisan] : [...prodBenefitsMicroslit];
-                                  updated[idx].description = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdBenefitsFujisan(updated) : setProdBenefitsMicroslit(updated);
+                                  const updated = [...prodBenefits];
+                                  updated[idx] = { ...updated[idx], description: e.target.value };
+                                  setProdBenefits(updated);
                                 }}
                                 className="sm:col-span-2 bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -536,9 +503,9 @@ function AdminPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const updated = selectedProduct === "fujisan" ? [...prodBenefitsFujisan] : [...prodBenefitsMicroslit];
+                                const updated = [...prodBenefits];
                                 updated.splice(idx, 1);
-                                selectedProduct === "fujisan" ? setProdBenefitsFujisan(updated) : setProdBenefitsMicroslit(updated);
+                                setProdBenefits(updated);
                               }}
                               className="text-muted-foreground hover:text-red-400 p-1.5 transition-colors"
                             >
@@ -557,8 +524,7 @@ function AdminPage() {
                           type="button"
                           onClick={() => {
                             const add = { label: "Tolerances", value: "0.1mm" };
-                            if (selectedProduct === "fujisan") setProdSpecsFujisan([...prodSpecsFujisan, add]);
-                            else setProdSpecsMicroslit([...prodSpecsMicroslit, add]);
+                            setProdSpecs([...prodSpecs, add]);
                           }}
                           className="text-gold hover:underline text-xs uppercase tracking-wider font-semibold flex items-center gap-1"
                         >
@@ -566,7 +532,7 @@ function AdminPage() {
                         </button>
                       </div>
                       <div className="space-y-3">
-                        {(selectedProduct === "fujisan" ? prodSpecsFujisan : prodSpecsMicroslit).map((spec, idx) => (
+                        {prodSpecs.map((spec, idx) => (
                           <div key={idx} className="flex gap-3 items-start p-3 bg-black/20 border border-border/40 rounded-sm">
                             <div className="flex-1 grid sm:grid-cols-2 gap-3">
                               <input
@@ -574,9 +540,9 @@ function AdminPage() {
                                 value={spec.label}
                                 placeholder="Property label (e.g. Weight)"
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodSpecsFujisan] : [...prodSpecsMicroslit];
-                                  updated[idx].label = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdSpecsFujisan(updated) : setProdSpecsMicroslit(updated);
+                                  const updated = [...prodSpecs];
+                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  setProdSpecs(updated);
                                 }}
                                 className="bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -585,9 +551,9 @@ function AdminPage() {
                                 value={spec.value}
                                 placeholder="Specification value (e.g. 58g)"
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodSpecsFujisan] : [...prodSpecsMicroslit];
-                                  updated[idx].value = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdSpecsFujisan(updated) : setProdSpecsMicroslit(updated);
+                                  const updated = [...prodSpecs];
+                                  updated[idx] = { ...updated[idx], value: e.target.value };
+                                  setProdSpecs(updated);
                                 }}
                                 className="bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -595,9 +561,9 @@ function AdminPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const updated = selectedProduct === "fujisan" ? [...prodSpecsFujisan] : [...prodSpecsMicroslit];
+                                const updated = [...prodSpecs];
                                 updated.splice(idx, 1);
-                                selectedProduct === "fujisan" ? setProdSpecsFujisan(updated) : setProdSpecsMicroslit(updated);
+                                setProdSpecs(updated);
                               }}
                               className="text-muted-foreground hover:text-red-400 p-1.5 transition-colors"
                             >
@@ -616,8 +582,7 @@ function AdminPage() {
                           type="button"
                           onClick={() => {
                             const add = { q: "FAQ Question?", a: "FAQ Answer details." };
-                            if (selectedProduct === "fujisan") setProdFaqFujisan([...prodFaqFujisan, add]);
-                            else setProdFaqMicroslit([...prodFaqMicroslit, add]);
+                            setProdFaq([...prodFaq, add]);
                           }}
                           className="text-gold hover:underline text-xs uppercase tracking-wider font-semibold flex items-center gap-1"
                         >
@@ -625,28 +590,27 @@ function AdminPage() {
                         </button>
                       </div>
                       <div className="space-y-3">
-                        {(selectedProduct === "fujisan" ? prodFaqFujisan : prodFaqMicroslit).map((faq, idx) => (
+                        {prodFaq.map((faqItem, idx) => (
                           <div key={idx} className="flex gap-3 items-start p-3 bg-black/20 border border-border/40 rounded-sm">
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 grid gap-3">
                               <input
                                 type="text"
-                                value={faq.q}
-                                placeholder="Product FAQ Question"
+                                value={faqItem.q}
+                                placeholder="FAQ Question"
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodFaqFujisan] : [...prodFaqMicroslit];
-                                  updated[idx].q = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdFaqFujisan(updated) : setProdFaqMicroslit(updated);
+                                  const updated = [...prodFaq];
+                                  updated[idx] = { ...updated[idx], q: e.target.value };
+                                  setProdFaq(updated);
                                 }}
                                 className="w-full bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
                               <textarea
-                                rows={2}
-                                value={faq.a}
-                                placeholder="Product FAQ Answer details..."
+                                value={faqItem.a}
+                                placeholder="FAQ Answer details..."
                                 onChange={(e) => {
-                                  const updated = selectedProduct === "fujisan" ? [...prodFaqFujisan] : [...prodFaqMicroslit];
-                                  updated[idx].a = e.target.value;
-                                  selectedProduct === "fujisan" ? setProdFaqFujisan(updated) : setProdFaqMicroslit(updated);
+                                  const updated = [...prodFaq];
+                                  updated[idx] = { ...updated[idx], a: e.target.value };
+                                  setProdFaq(updated);
                                 }}
                                 className="w-full bg-[#0a0a0a] border border-border py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-gold rounded-sm"
                               />
@@ -654,9 +618,9 @@ function AdminPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const updated = selectedProduct === "fujisan" ? [...prodFaqFujisan] : [...prodFaqMicroslit];
+                                const updated = [...prodFaq];
                                 updated.splice(idx, 1);
-                                selectedProduct === "fujisan" ? setProdFaqFujisan(updated) : setProdFaqMicroslit(updated);
+                                setProdFaq(updated);
                               }}
                               className="text-muted-foreground hover:text-red-400 p-1.5 transition-colors"
                             >

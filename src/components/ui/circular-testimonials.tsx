@@ -148,7 +148,7 @@ export function CircularTestimonials({
   const [containerWidth, setContainerWidth] = useState(0);
   const [arrowHover, setArrowHover] = useState<"prev" | "next" | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
-  const autoplayStoppedRef = useRef(false);
+  const [userInteractedAt, setUserInteractedAt] = useState<number>(0);
 
   const len = testimonials.length;
   const gap = calculateGap(containerWidth || 1024);
@@ -168,7 +168,7 @@ export function CircularTestimonials({
 
   const goTo = useCallback(
     (index: number) => {
-      autoplayStoppedRef.current = true;
+      setUserInteractedAt(Date.now());
       setActiveIndex(((index % len) + len) % len);
     },
     [len],
@@ -187,12 +187,20 @@ export function CircularTestimonials({
   }, [next, prev]);
 
   useEffect(() => {
-    if (!autoplay || len <= 1 || autoplayStoppedRef.current) return;
+    if (!autoplay || len <= 1) return;
+
+    if (userInteractedAt > 0) {
+      const timeoutId = setTimeout(() => {
+        setUserInteractedAt(0);
+      }, 7000);
+      return () => clearTimeout(timeoutId);
+    }
+
     const id = setInterval(() => {
       setActiveIndex((i) => (i + 1) % len);
     }, 5000);
     return () => clearInterval(id);
-  }, [autoplay, len]);
+  }, [autoplay, len, userInteractedAt]);
 
   return (
     <div className="w-full p-4 md:p-8">
