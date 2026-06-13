@@ -3,6 +3,8 @@ import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { Phone, Mail, MessageCircle, Clock } from "lucide-react";
 
+import { fetchSiteContent } from "@/lib/content";
+
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
@@ -13,10 +15,17 @@ export const Route = createFileRoute("/contact")({
     ],
     links: [{ rel: "canonical", href: "/contact" }],
   }),
+  loader: async () => {
+    const content = await fetchSiteContent();
+    return { content };
+  },
   component: ContactPage,
 });
 
 function ContactPage() {
+  const { content } = Route.useLoaderData();
+  const supportEmail = content["contact.support.email"] || "hello@katanaedge.com";
+
   return (
     <Layout>
       <section className="py-24 md:py-32 border-b border-border">
@@ -35,7 +44,7 @@ function ContactPage() {
         <div className="container-luxe grid md:grid-cols-3 gap-px bg-border max-w-5xl mx-auto border border-border">
           {[
             { i: Phone, t: "Call us", l: "+1 (316) 368-2814", h: "tel:+13163682814", s: "Mon–Fri · 9am–6pm CT" },
-            { i: Mail, t: "Email us", l: "hello@katanaedge.com", h: "mailto:hello@katanaedge.com", s: "Replies within 24 hours" },
+            { i: Mail, t: "Email us", l: supportEmail, h: `mailto:${supportEmail}`, s: "Replies within 24 hours" },
             { i: MessageCircle, t: "Live chat", l: "Open chat widget", h: "#", s: "AI concierge · 24/7" },
           ].map((c) => (
             <a key={c.t} href={c.h} className="bg-card p-10 text-center hover:bg-background transition-colors group">

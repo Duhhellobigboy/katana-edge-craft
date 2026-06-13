@@ -18,10 +18,10 @@ const navLinks: NavLink[] = [
 ];
 
 const tickerMessages = [
-  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-white" },
-  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-gold" },
-  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-white" },
-  { text: "KATANA EDGE OFFICIAL • DELIVERED WORLDWIDE • SHARPER CUTS", color: "text-gold" },
+  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-white" },
+  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-gold" },
+  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-white" },
+  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-gold" },
 ];
 
 export function Header() {

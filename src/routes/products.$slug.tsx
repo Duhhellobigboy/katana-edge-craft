@@ -19,8 +19,10 @@ import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
+import { fetchDbProductBySlug } from "@/lib/content";
+
 export const Route = createFileRoute("/products/$slug")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     if (params.slug === "micro-slit-scissors") {
       throw redirect({
         to: "/products/$slug",
@@ -36,7 +38,9 @@ export const Route = createFileRoute("/products/$slug")({
 
     const product = getProduct(params.slug);
     if (!product) throw notFound();
-    return { product };
+
+    const dbProduct = await fetchDbProductBySlug(params.slug, product);
+    return { product: dbProduct };
   },
   head: ({ loaderData }) => ({
     meta: loaderData ? [

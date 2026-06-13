@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
-import { Star, Quote } from "lucide-react";
+import { Star } from "lucide-react";
+import { fetchTestimonials } from "@/lib/content";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/reviews")({
+  loader: () => fetchTestimonials(),
   head: () => ({
     meta: [
       { title: "Reviews — What Barbers Say About Katana Edge Scissors" },
@@ -15,20 +18,9 @@ export const Route = createFileRoute("/reviews")({
   component: ReviewsPage,
 });
 
-const reviews = [
-  { name: "Marcus Vega", role: "Master Barber · Brooklyn", body: "Fujisan delivers the cleanest blending I've used. My fades drop into place in a single pass.", rating: 5 },
-  { name: "Brenna", role: "Ame Salon", body: "The Micro Slit is a game-changer for my salon. The micro slits make cutting easier with unmatched sharpness and stability.", rating: 5 },
-  { name: "Laura Wright", role: "Laura Studio", body: "Every haircut feels more precise with Micro Slit. It has transformed my cutting routine and the results speak for themselves.", rating: 5 },
-  { name: "Devon Hill", role: "Salon Owner · Chicago", body: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
-  { name: "Sofia Marín", role: "Stylist Educator · Madrid", body: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
-  { name: "James Okafor", role: "Barber · London", body: "Best investment I've made for my chair in five years. Clients ask about the shears.", rating: 5 },
-  { name: "Priya Shah", role: "Stylist · Mumbai", body: "The convex edge slices through Indian textures effortlessly. Total game changer.", rating: 5 },
-  { name: "Lena Vogel", role: "Salon Owner · Berlin", body: "Build quality you can feel. Heavy where it matters, weightless where it counts.", rating: 5 },
-  { name: "Carlos Rivera", role: "Master Barber · Miami", body: "Lifetime sharpening sealed the deal. These will be with me for my entire career.", rating: 5 },
-  { name: "Hannah Chen", role: "Stylist · Vancouver", body: "Worth every penny. My wrist no longer aches after a 10-hour day.", rating: 5 },
-];
-
 function ReviewsPage() {
+  const reviews = Route.useLoaderData();
+
   return (
     <Layout>
       <section className="py-24 md:py-32 border-b border-border">
@@ -48,17 +40,38 @@ function ReviewsPage() {
         <div className="container-luxe">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reviews.map((r) => (
-              <figure key={r.name} className="luxe-card p-8 relative">
-                <Quote className="absolute top-6 right-6 size-7 text-gold/20" />
-                <div className="flex gap-0.5 mb-3">
-                  {Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="size-3.5 fill-gold text-gold" />)}
+              <div
+                key={r.name}
+                className="luxe-card p-6 bg-card border border-border/40 rounded-sm relative flex flex-col justify-between hover:border-gold/30 transition-all duration-300"
+              >
+                <div>
+                  {/* Instagram-style Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <Avatar className="size-10 border border-border">
+                      {r.avatar && <AvatarImage src={r.avatar} alt={r.name} className="object-cover" />}
+                      <AvatarFallback className="bg-secondary text-gold font-semibold text-xs">
+                        {r.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-sm text-foreground leading-snug">{r.name}</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{r.role}</p>
+                    </div>
+                  </div>
+
+                  {/* Star Rating */}
+                  <div className="flex gap-0.5 mb-3.5">
+                    {Array.from({ length: r.rating }).map((_, i) => (
+                      <Star key={i} className="size-3.5 fill-gold text-gold" />
+                    ))}
+                  </div>
+
+                  {/* Quote content */}
+                  <blockquote className="text-sm text-muted-foreground/90 leading-relaxed font-sans">
+                    "{r.quote}"
+                  </blockquote>
                 </div>
-                <blockquote className="font-display text-lg leading-snug">"{r.body}"</blockquote>
-                <figcaption className="mt-6 pt-6 border-t border-border">
-                  <p className="font-medium text-sm">{r.name}</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] mt-1">{r.role}</p>
-                </figcaption>
-              </figure>
+              </div>
             ))}
           </div>
         </div>

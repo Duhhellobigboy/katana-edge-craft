@@ -8,7 +8,7 @@ export function LeadForm({ variant = "inline" }: { variant?: "inline" | "compact
   return (
     <section
       id={isCompact ? "contact" : undefined}
-      className={isCompact ? "scroll-mt-28 py-12 md:py-20 border-y border-border" : "py-20 md:py-28"}
+      className={isCompact ? "scroll-mt-28 py-20 md:py-28 border-y border-border washi-texture" : "py-28 md:py-36 washi-texture"}
       style={{ backgroundColor: brand.bg }}
     >
       <div className="container-luxe">
@@ -20,17 +20,16 @@ export function LeadForm({ variant = "inline" }: { variant?: "inline" | "compact
             className="font-display text-3xl md:text-5xl mt-4 leading-tight"
             style={{ color: brand.text }}
           >
-            Book Your Consultation
+            Speak With A Katana Edge Specialist
           </h2>
-          <p className="mt-4 mb-8 text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Choose a time that works for you. Your booking is handled securely
-            through Calendly.
+          <p className="mt-4 mb-10 text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Schedule a consultation to find the shear best suited to your cutting style and professional needs.
           </p>
 
           <div
-            className="text-left rounded-sm border border-gold/30 p-4 md:p-6 overflow-hidden bg-[#0a0a0a]"
+            className="text-left rounded-sm border border-gold/20 p-5 md:p-8 overflow-hidden bg-[#0B0B0B]"
           >
-            <div className="hairline mb-6" />
+            <div className="blade-line mb-8" />
             <CalendlyEmbed />
           </div>
         </div>

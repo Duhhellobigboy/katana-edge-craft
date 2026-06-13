@@ -35,6 +35,11 @@ export type Product = {
   returnPolicy: string;
   warranty: string;
   testimonials?: ProductTestimonial[];
+  features?: { title: string; description: string }[];
+  benefits?: { title: string; description: string }[];
+  useCases?: { title: string; description: string }[];
+  specs?: { label: string; value: string }[];
+  faq?: { q: string; a: string }[];
 };
 
 export const products: Product[] = [
@@ -45,7 +50,7 @@ export const products: Product[] = [
     tagline: "Stable, precise dry and wet cutting.",
     price: 1099.99,
     image: microslitImg1,
-    gallery: [microslitImg1, microslitImg2, microslitImg3, microslitImg4],
+    gallery: [microslitImg1, microslitImg2, fujisanImg2, microslitImg3],
     video: microslitVideo,
     rating: 4.9,
     reviewCount: 892,
@@ -80,7 +85,7 @@ export const products: Product[] = [
     tagline: "Smooth blending. Healthier results.",
     price: 859.99,
     image: fujisanImg1,
-    gallery: [fujisanImg1, fujisanImg2, fujisanImg3, fujisanImg4],
+    gallery: [fujisanImg1, fujisanImg2, microslitImg2, fujisanImg4],
     video: fujisanVideo,
     rating: 4.9,
     reviewCount: 1248,
