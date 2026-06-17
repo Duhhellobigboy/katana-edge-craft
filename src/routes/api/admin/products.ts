@@ -13,6 +13,7 @@ const productUpdateSchema = z.object({
     "naruto-shears",
     "karakuri-shears",
     "bamboo-shears",
+    "bamboo-thinning-shears",
   ]),
   name: z.string().min(1, "Name cannot be empty"),
   tagline: z.string().default(""),

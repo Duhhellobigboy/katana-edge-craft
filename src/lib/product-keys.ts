@@ -10,6 +10,13 @@ export const SLUG_TO_PRODUCT_KEY: Record<string, ApplyProductKey> = {
   "fujisan-thinning-shears": "fujisan",
   /** @deprecated Legacy cart slug — kept so existing carts still checkout. */
   "fujisan-thinning-scissors": "fujisan",
+  "thunder-shears": "thunder",
+  "double-swivel-shears": "double_swivel",
+  "naruto-shears": "naruto",
+  "karakuri-shears": "karakuri",
+  "bamboo-shears": "bamboo",
+  "bamboo-thinning": "bamboo_thinning",
+  "bamboo-thinning-shears": "bamboo_thinning",
 };
 
 export function slugToProductKey(slug: string): ApplyProductKey | null {
@@ -22,9 +29,14 @@ export function clampQuantity(quantity: number): number {
 
 export type CheckoutLineItem = {
   productKey: ApplyProductKey;
+  variantKey: string;
   quantity: number;
   name: string;
   priceDisplay: string;
+  selectedSize?: string;
+  selectedHandle?: string;
+  selectedStyle?: string;
+  sku?: string;
 };
 
 export function getProductDisplay(productKey: ApplyProductKey) {
@@ -32,12 +44,13 @@ export function getProductDisplay(productKey: ApplyProductKey) {
 }
 
 export function buildCheckoutLineItems(
-  raw: { productKey: ApplyProductKey; quantity: number }[]
+  raw: { productKey: ApplyProductKey; quantity: number; variantKey?: string }[]
 ): CheckoutLineItem[] {
-  return raw.map(({ productKey, quantity }) => {
+  return raw.map(({ productKey, quantity, variantKey }) => {
     const display = getProductDisplay(productKey);
     return {
       productKey,
+      variantKey: variantKey ?? productKey,
       quantity: clampQuantity(quantity),
       name: display?.name ?? productKey,
       priceDisplay: display?.priceDisplay ?? "",

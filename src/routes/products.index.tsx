@@ -42,7 +42,7 @@ function ShopPage() {
       </section>
 
       <section className="py-20 md:py-28">
-        <div className="container-luxe grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="container-luxe grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((p) => <ProductCard key={p.slug} product={p} />)}
         </div>
       </section>
