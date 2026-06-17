@@ -10,8 +10,13 @@ export function getSessionExpiresAt(): string {
 }
 
 export type CheckoutCartItem = {
-  product_key: CheckoutProductKey;
+  product_key: string;
+  variant_key?: string;
   quantity: number;
+  selected_size?: string;
+  selected_handle?: string;
+  selected_style?: string;
+  sku?: string;
 };
 
 export async function upsertGuestCheckoutSession(input: {

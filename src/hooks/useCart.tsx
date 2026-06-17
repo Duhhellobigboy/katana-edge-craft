@@ -4,17 +4,23 @@ import { sumMoneyAmounts } from "@/lib/products";
 
 export type CartItem = {
   slug: string;
+  productKey: string;
+  variantKey: string; // Unique line identity in the cart
   name: string;
-  price: number;
   image: string;
+  price: number;
   quantity: number;
+  selectedSize?: string;
+  selectedHandle?: string;
+  selectedStyle?: string;
+  sku?: string;
 };
 
 type CartContextType = {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (slug: string) => void;
-  updateQuantity: (slug: string, quantity: number) => void;
+  removeItem: (variantKey: string) => void;
+  updateQuantity: (variantKey: string, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
@@ -30,12 +36,57 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartOpen, setCartOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount and parse/migrate safely
   useEffect(() => {
     try {
       const stored = localStorage.getItem("katana_edge_cart");
       if (stored) {
-        setItems(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const migrated = parsed.map((item: any) => {
+            // Already migrated / uses new structure
+            if (item.variantKey) {
+              return item;
+            }
+
+            // Map legacy unambiguous checkout items
+            if (item.slug === "fujisan-thinning-shears" || item.slug === "fujisan-thinning-scissors") {
+              return {
+                ...item,
+                slug: "fujisan-thinning-shears",
+                productKey: "fujisan",
+                variantKey: "fujisan",
+              };
+            }
+            if (item.slug === "naruto-shears") {
+              return {
+                ...item,
+                slug: "naruto-shears",
+                productKey: "naruto",
+                variantKey: "naruto",
+              };
+            }
+            
+            // Micro Slit requires sizing, map to legacy flag so user is prompted to reselect
+            if (item.slug === "micro-slit-shears" || item.slug === "micro-slit-scissors") {
+              return {
+                ...item,
+                slug: "micro-slit-shears",
+                productKey: "microslit",
+                variantKey: "legacy_microslit",
+              };
+            }
+
+            // Default safe fallback map
+            const rawKey = item.slug.replace("-shears", "").replace("-thinning", "").replace("-", "_");
+            return {
+              ...item,
+              productKey: rawKey,
+              variantKey: `${rawKey}_default`,
+            };
+          });
+          setItems(migrated);
+        }
       }
     } catch (e) {
       console.error("Failed to load cart from localStorage", e);
@@ -56,10 +107,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (newItem: Omit<CartItem, "quantity">, quantity = 1) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.slug === newItem.slug);
+      const existing = prev.find((item) => item.variantKey === newItem.variantKey);
       if (existing) {
         return prev.map((item) =>
-          item.slug === newItem.slug
+          item.variantKey === newItem.variantKey
             ? {
                 ...item,
                 quantity: Math.min(
@@ -78,18 +129,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCartOpen(true);
   };
 
-  const removeItem = (slug: string) => {
-    setItems((prev) => prev.filter((item) => item.slug !== slug));
+  const removeItem = (variantKey: string) => {
+    setItems((prev) => prev.filter((item) => item.variantKey !== variantKey));
   };
 
-  const updateQuantity = (slug: string, quantity: number) => {
+  const updateQuantity = (variantKey: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(slug);
+      removeItem(variantKey);
       return;
     }
     setItems((prev) =>
       prev.map((item) =>
-        item.slug === slug
+        item.variantKey === variantKey
           ? { ...item, quantity: Math.min(MAX_CHECKOUT_QUANTITY, quantity) }
           : item
       )

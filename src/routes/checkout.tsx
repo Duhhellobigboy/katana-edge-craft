@@ -129,7 +129,12 @@ function CheckoutPage() {
           checkoutSessionId,
           items: orderItems.map((item) => ({
             productKey: item.productKey,
+            variantKey: item.variantKey || item.productKey,
             quantity: item.quantity,
+            selectedSize: item.selectedSize,
+            selectedHandle: item.selectedHandle,
+            selectedStyle: item.selectedStyle,
+            sku: item.sku,
           })),
           ...values,
         }),
@@ -220,7 +225,7 @@ function CheckoutPage() {
                 <div className="divide-y divide-border/20">
                   {orderItems.map((item) => (
                     <div
-                      key={item.productKey}
+                      key={item.variantKey || item.productKey}
                       className="flex items-start justify-between gap-4 py-4 first:pt-0 last:pb-0"
                     >
                       <div>

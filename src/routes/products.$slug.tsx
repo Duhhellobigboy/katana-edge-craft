@@ -163,6 +163,38 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const [showSticky, setShowSticky] = useState(false);
   const { addItem } = useCart();
+
+  // Selected option states
+  const [selectedInches, setSelectedInches] = useState<string>("");
+  const [selectedStyle, setSelectedStyle] = useState<string>("");
+  const [selectedHandle, setSelectedHandle] = useState<string>("");
+  const [currentPrice, setCurrentPrice] = useState(product.price);
+
+  // Initialize fixed options and reset selection on product changes
+  useEffect(() => {
+    if (product.handleOptions && product.handleOptions.length > 0) {
+      setSelectedHandle(product.handleOptions[0]);
+    } else {
+      setSelectedHandle("");
+    }
+    setSelectedInches("");
+    setSelectedStyle("");
+  }, [product]);
+
+  // Dynamically update pricing based on selected variant options
+  useEffect(() => {
+    const match = product.variants?.find(v => {
+      const sizeMatch = !product.inchesOptions || v.sizeLabel === selectedInches;
+      const handleMatch = !product.handleOptions || v.handleLabel === selectedHandle;
+      const styleMatch = !product.styleOptions || v.styleLabel === selectedStyle;
+      return sizeMatch && handleMatch && styleMatch;
+    });
+    if (match) {
+      setCurrentPrice(match.priceCents / 100);
+    } else {
+      setCurrentPrice(product.price);
+    }
+  }, [selectedInches, selectedStyle, selectedHandle, product]);
   
   // Cross-sell only the first 2 other products from database to fit layout
   const cross = allProducts
@@ -201,15 +233,66 @@ function ProductPage() {
       toast.error("This product is Coming Soon and cannot be purchased.");
       return;
     }
+
+    // Validation: Enforce Inches selection
+    if (product.inchesOptions && product.inchesOptions.length > 0 && !selectedInches) {
+      toast.error("Please select a size under Inches.");
+      return;
+    }
+
+    // Validation: Enforce Style selection
+    if (product.styleOptions && product.styleOptions.length > 0 && !selectedStyle) {
+      toast.error("Please select a style.");
+      return;
+    }
+
+    // Resolve variantKey
+    let variantKey = product.slug === "fujisan-thinning-shears" ? "fujisan" :
+                     product.slug === "naruto-shears" ? "naruto" : "";
+    let sku = product.sku || "";
+    let finalPrice = currentPrice;
+
+    if (!variantKey) {
+      // Find matches in product.variants
+      const match = product.variants?.find(v => {
+        const sizeMatch = !product.inchesOptions || v.sizeLabel === selectedInches;
+        const handleMatch = !product.handleOptions || v.handleLabel === selectedHandle;
+        const styleMatch = !product.styleOptions || v.styleLabel === selectedStyle;
+        return sizeMatch && handleMatch && styleMatch;
+      });
+
+      if (match) {
+        variantKey = match.variantKey;
+        sku = match.sku || "";
+        finalPrice = match.priceCents / 100;
+      } else {
+        // Fallback key matching naming convention
+        const baseKey = product.slug.replace("-shears", "").replace("-thinning", "").replace("-", "_");
+        const sizePart = selectedInches ? `_${selectedInches.replace(".", "")}` : "";
+        const stylePart = selectedStyle ? `_${selectedStyle.toLowerCase().replace(/\s+/g, "_")}` : "";
+        const handlePart = selectedHandle ? `_${selectedHandle.toLowerCase()}` : "";
+        variantKey = `${baseKey}${sizePart}${handlePart}${stylePart}`;
+      }
+    }
+
     addItem(
       {
         slug: product.slug,
+        productKey: product.slug === "micro-slit-shears" ? "microslit" :
+                    product.slug === "fujisan-thinning-shears" ? "fujisan" :
+                    product.slug.replace("-shears", "").replace("-thinning", "").replace("-", "_") as any,
+        variantKey,
         name: product.name,
-        price: product.price,
+        price: finalPrice,
         image: product.image,
+        selectedSize: selectedInches || undefined,
+        selectedHandle: selectedHandle || undefined,
+        selectedStyle: selectedStyle || undefined,
+        sku: sku || undefined,
       },
       quantity
     );
+
     toast.success(
       quantity > 1
         ? `Added ${quantity} × ${product.name} to cart`
@@ -312,7 +395,7 @@ function ProductPage() {
 
             <div className={`${product.reviewCount !== undefined && product.reviewCount > 0 ? "mt-8" : "mt-5"} flex items-baseline gap-4`}>
               <span className="font-display text-4xl text-gold">
-                {formatProductPrice(product.price)}
+                {formatProductPrice(currentPrice)}
               </span>
               {product.compareAt && (
                 <>
@@ -331,6 +414,81 @@ function ProductPage() {
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
+
+            {/* Sizing (Inches) Selector */}
+            {product.inchesOptions && product.inchesOptions.length > 0 && (
+              <div className="mt-6 space-y-2">
+                <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold flex items-center gap-1">
+                  Inches <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedInches}
+                    onChange={(e) => setSelectedInches(e.target.value)}
+                    className="w-full bg-[#0a0a0a] border border-border py-2.5 px-4 text-sm focus:outline-none focus:border-gold rounded-sm appearance-none cursor-pointer"
+                  >
+                    <option value="">Select Inches</option>
+                    {product.inchesOptions.map((inch) => (
+                      <option key={inch} value={inch}>
+                        {inch}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Handle Options (fixed display-only label) */}
+            {product.handleOptions && product.handleOptions.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                  Handle
+                </label>
+                <div className="bg-[#111] border border-border/20 py-2.5 px-4 text-sm rounded-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  {product.handleOptions[0]}
+                </div>
+              </div>
+            )}
+
+            {/* Style Selector */}
+            {product.styleOptions && (
+              <div className="mt-4 space-y-2">
+                <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold flex items-center gap-1">
+                  Style <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    disabled={product.styleOptions.length === 0}
+                    value={selectedStyle}
+                    onChange={(e) => setSelectedStyle(e.target.value)}
+                    className="w-full bg-[#0a0a0a] border border-border py-2.5 px-4 text-sm focus:outline-none focus:border-gold rounded-sm disabled:opacity-50 disabled:cursor-not-allowed appearance-none cursor-pointer"
+                  >
+                    {product.styleOptions.length === 0 ? (
+                      <option value="">Select Style (Pending Configuration)</option>
+                    ) : (
+                      <>
+                        <option value="">Select Style</option>
+                        {product.styleOptions.map((style) => (
+                          <option key={style} value={style}>
+                            {style}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {product.active === false ? (
               <div className="mt-8">
@@ -379,7 +537,7 @@ function ProductPage() {
                     className="btn-gold flex-1"
                     onClick={() => handleAddToCart(qty)}
                   >
-                    Add To Cart — {formatProductPrice(product.price * qty)}
+                    Add To Cart — {formatProductPrice(currentPrice * qty)}
                     <ArrowRight className="size-4" />
                   </button>
                 </div>
@@ -501,7 +659,7 @@ function ProductPage() {
               />
               <div className="min-w-0">
                 <p className="font-display text-base md:text-lg truncate">{product.name}</p>
-                <p className="text-xs text-gold">{formatProductPrice(product.price)}</p>
+                <p className="text-xs text-gold">{formatProductPrice(currentPrice)}</p>
               </div>
             </div>
             <button type="button" className="btn-gold !py-3" onClick={() => handleAddToCart(1)}>

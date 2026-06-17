@@ -11,11 +11,25 @@ import microslitVideo from "@/assets/microslit/microslit.mp4";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-
 export type ProductTestimonial = {
   quote: string;
   name: string;
   role: string;
+};
+
+export type ProductVariant = {
+  id: string;
+  productId: string;
+  variantKey: string;
+  sizeLabel?: string;     // maps to Inches selector
+  handleLabel?: string;   // maps to Handle selector
+  styleLabel?: string;    // maps to Style selector
+  sku?: string;
+  priceCents: number;
+  compareAtCents?: number;
+  currency: string;
+  active: boolean;
+  sortOrder: number;
 };
 
 export type Product = {
@@ -48,6 +62,12 @@ export type Product = {
   bestSeller?: boolean;
   displayOrder?: number;
   active?: boolean;
+
+  // Specification options for UI selectors
+  inchesOptions?: string[];
+  handleOptions?: string[];
+  styleOptions?: string[];
+  variants?: ProductVariant[];
 };
 
 export const products: Product[] = [
@@ -57,8 +77,8 @@ export const products: Product[] = [
     sku: "364215376135191",
     tagline: "Stable, precise dry and wet cutting.",
     price: 1099.99,
-    image: microslitImg1,
-    gallery: [microslitImg1, microslitImg2, fujisanImg2, microslitImg3],
+    image: "/products/micro-slit/main.webp",
+    gallery: ["/products/micro-slit/main.webp", "/products/micro-slit/detail-1.webp", "/products/micro-slit/detail-2.webp", "/products/micro-slit/detail-3.webp"],
     video: microslitVideo,
     rating: 4.9,
     reviewCount: 892,
@@ -89,14 +109,15 @@ export const products: Product[] = [
     featured: true,
     bestSeller: true,
     displayOrder: 1,
+    inchesOptions: ["5.5", "6.0", "6.5", "7.0"],
   },
   {
     slug: "fujisan-thinning-shears",
     name: "Fujisan",
     tagline: "Smooth blending. Healthier results.",
     price: 859.99,
-    image: fujisanImg1,
-    gallery: [fujisanImg1, fujisanImg2, microslitImg2, fujisanImg4],
+    image: "/products/fujisan/main.webp",
+    gallery: ["/products/fujisan/main.webp", "/products/fujisan/detail-1.webp", "/products/fujisan/detail-2.webp", "/products/fujisan/detail-3.webp"],
     video: fujisanVideo,
     rating: 4.9,
     reviewCount: 1248,
@@ -131,7 +152,8 @@ export const products: Product[] = [
     featured: false,
     bestSeller: false,
     displayOrder: 3,
-    active: false,
+    active: true,
+    inchesOptions: ["5.8", "6.25"],
   },
   {
     slug: "double-swivel-shears",
@@ -150,7 +172,8 @@ export const products: Product[] = [
     featured: false,
     bestSeller: false,
     displayOrder: 4,
-    active: false,
+    active: true,
+    inchesOptions: ["5.5", "5.8", "6.3"],
   },
   {
     slug: "naruto-shears",
@@ -169,7 +192,7 @@ export const products: Product[] = [
     featured: false,
     bestSeller: false,
     displayOrder: 5,
-    active: false,
+    active: true,
   },
   {
     slug: "karakuri-shears",
@@ -188,7 +211,9 @@ export const products: Product[] = [
     featured: false,
     bestSeller: false,
     displayOrder: 6,
-    active: false,
+    active: true,
+    inchesOptions: ["5.5", "5.8", "6.3"],
+    handleOptions: ["Opposing"],
   },
   {
     slug: "bamboo-shears",
@@ -207,7 +232,30 @@ export const products: Product[] = [
     featured: false,
     bestSeller: false,
     displayOrder: 7,
-    active: false,
+    active: true,
+    inchesOptions: ["5.5", "6.0", "6.5", "7.0"],
+    styleOptions: [],
+  },
+  {
+    slug: "bamboo-thinning-shears",
+    name: "Bamboo Thinning Shear",
+    tagline: "Eco-conscious blend. Smooth, bulk texturizing.",
+    price: 419.99,
+    image: "/products/bamboo-thinning/main.webp",
+    gallery: ["/products/bamboo-thinning/main.webp"],
+    rating: 0,
+    reviewCount: 0,
+    shortDescription: "30 Teeth: Specifically crafted for efficient bulk removal, these shears offer quick and controlled thinning.",
+    longDescription: "Designed to handle bulk with precision, the ergonomic construction ensures a comfortable grip, allowing hairstylists to effortlessly create texture and remove excess weight.\n\nThe perfect blend of functionality and eco-conscious design for streamlined hairstyling.",
+    shippingHandling: "Every order is prepared with care and precision before shipping. Expect delivery in 6–8 business days. Flat-rate shipping: $20.",
+    returnPolicy: "Your satisfaction matters to us. If for any reason you're not happy with your order, you have 7 days from delivery to request a return or exchange. Items must be unused and in original condition.",
+    warranty: "Every pair includes a lifetime warranty covering defects in materials or workmanship. If eligible, we will repair or replace the shears at no cost.",
+    featured: false,
+    bestSeller: false,
+    displayOrder: 8,
+    active: true,
+    inchesOptions: ["6.0"],
+    styleOptions: [],
   },
 ];
 
@@ -239,12 +287,7 @@ async function getDynamicGallery(
     const fs = await import("node:fs");
     const path = await import("node:path");
 
-    // For legacy products using src/assets, return their fallback gallery
-    if (slug === "micro-slit-shears" || slug === "fujisan-thinning-shears") {
-      return fallbackGallery || [fallbackImage];
-    }
-
-    const productDirName = slug.replace("-shears", "");
+    const productDirName = slug === "fujisan-thinning-shears" ? "fujisan" : slug.replace("-shears", "");
     const publicDir = path.resolve(process.cwd(), "public/products", productDirName);
 
     if (!fs.existsSync(publicDir)) {
@@ -272,9 +315,24 @@ export const getAllDbProducts = createServerFn({ method: "GET" })
     try {
       const { createSupabaseServerClient } = await import("./supabase.server");
       const supabase = createSupabaseServerClient();
+      
       const { data, error } = await supabase
         .from("products")
         .select("*");
+
+      // Fetch all public active variants safely (hybrid fallback if not exist)
+      let dbVariants: any[] = [];
+      try {
+        const { data: vData, error: vError } = await supabase
+          .from("product_variants_public")
+          .select("*")
+          .order("sort_order", { ascending: true });
+        if (!vError && vData) {
+          dbVariants = vData;
+        }
+      } catch (vErr) {
+        console.error("Failed to query product_variants_public, using empty array:", vErr);
+      }
 
       if (error || !data || data.length === 0) {
         return Promise.all(
@@ -288,6 +346,22 @@ export const getAllDbProducts = createServerFn({ method: "GET" })
       return Promise.all(
         products.map(async (fallback) => {
           const dbProduct = data.find((p) => p.slug === fallback.slug);
+          const productVariants = dbVariants
+            .filter((v) => dbProduct && v.product_id === dbProduct.id)
+            .map((v) => ({
+              id: v.id,
+              productId: v.product_id,
+              variantKey: v.variant_key,
+              sizeLabel: v.size_label || undefined,
+              handleLabel: v.handle_label || undefined,
+              styleLabel: v.style_label || undefined,
+              priceCents: v.price_cents,
+              compareAtCents: v.compare_at_cents || undefined,
+              currency: v.currency,
+              active: v.active,
+              sortOrder: v.sort_order,
+            }));
+
           const baseProduct = dbProduct ? {
             ...fallback,
             name: dbProduct.name,
@@ -305,6 +379,7 @@ export const getAllDbProducts = createServerFn({ method: "GET" })
             specs: Array.isArray(dbProduct.specs) && dbProduct.specs.length > 0 ? dbProduct.specs : fallback.specs,
             faq: Array.isArray(dbProduct.faq) && dbProduct.faq.length > 0 ? dbProduct.faq : fallback.faq,
             active: dbProduct.active !== null && dbProduct.active !== undefined ? dbProduct.active : fallback.active,
+            variants: productVariants.length > 0 ? productVariants : undefined,
           } : fallback;
 
           const dynamicGallery = await getDynamicGallery(baseProduct.slug, baseProduct.image, fallback.gallery);
@@ -349,6 +424,35 @@ export const getDbProductBySlug = createServerFn({ method: "GET" })
         };
       }
 
+      // Fetch active variants safely for this specific product (hybrid fallback)
+      let dbVariants: any[] = [];
+      try {
+        const { data: vData, error: vError } = await supabase
+          .from("product_variants_public")
+          .select("*")
+          .eq("product_id", data.id)
+          .order("sort_order", { ascending: true });
+        if (!vError && vData) {
+          dbVariants = vData;
+        }
+      } catch (vErr) {
+        console.error(`Failed to fetch variants for single product ${slug}:`, vErr);
+      }
+
+      const productVariants = dbVariants.map((v) => ({
+        id: v.id,
+        productId: v.product_id,
+        variantKey: v.variant_key,
+        sizeLabel: v.size_label || undefined,
+        handleLabel: v.handle_label || undefined,
+        styleLabel: v.style_label || undefined,
+        priceCents: v.price_cents,
+        compareAtCents: v.compare_at_cents || undefined,
+        currency: v.currency,
+        active: v.active,
+        sortOrder: v.sort_order,
+      }));
+
       const baseProduct = {
         ...fallbackProduct,
         name: data.name,
@@ -366,6 +470,7 @@ export const getDbProductBySlug = createServerFn({ method: "GET" })
         specs: Array.isArray(data.specs) && data.specs.length > 0 ? data.specs : fallbackProduct.specs,
         faq: Array.isArray(data.faq) && data.faq.length > 0 ? data.faq : fallbackProduct.faq,
         active: data.active !== null && data.active !== undefined ? data.active : fallbackProduct.active,
+        variants: productVariants.length > 0 ? productVariants : undefined,
       };
 
       const dynamicGallery = await getDynamicGallery(baseProduct.slug, baseProduct.image, fallbackProduct.gallery);
@@ -398,4 +503,3 @@ export const getAdminDbProducts = createServerFn({ method: "GET" })
       throw err;
     }
   });
-
