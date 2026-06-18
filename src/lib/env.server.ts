@@ -87,11 +87,11 @@ export function validateStripeSecretKey(
     };
   }
 
-  if (!key.startsWith("sk_test_") && !key.startsWith("sk_live_")) {
+  if (!key.startsWith("sk_test_")) {
     return {
       valid: false,
       key: null,
-      reason: "STRIPE_SECRET_KEY must start with sk_test_ or sk_live_.",
+      reason: "STRIPE_SECRET_KEY must start with sk_test_ (sandbox mode required).",
     };
   }
 
@@ -207,12 +207,17 @@ export function logStripeEnvDebug() {
   }
 
   console.log("[stripe-env] VITE_SITE_URL:", getSiteUrl());
-  console.log(
-    "[stripe-env] STRIPE_MICROSLIT_PRICE_ID exists:",
-    Boolean(getEnvVar("STRIPE_MICROSLIT_PRICE_ID")),
-  );
-  console.log(
-    "[stripe-env] STRIPE_FUJISAN_PRICE_ID exists:",
-    Boolean(getEnvVar("STRIPE_FUJISAN_PRICE_ID")),
-  );
+  const priceVars = [
+    "STRIPE_MICROSLIT_PRICE_ID",
+    "STRIPE_FUJISAN_PRICE_ID",
+    "STRIPE_THUNDER_PRICE_ID",
+    "STRIPE_DOUBLE_SWIVEL_PRICE_ID",
+    "STRIPE_NARUTO_PRICE_ID",
+    "STRIPE_KARAKURI_PRICE_ID",
+    "STRIPE_BAMBOO_PRICE_ID",
+    "STRIPE_BAMBOO_THINNING_PRICE_ID",
+  ];
+  for (const varName of priceVars) {
+    console.log(`[stripe-env] ${varName} exists:`, Boolean(getEnvVar(varName)));
+  }
 }

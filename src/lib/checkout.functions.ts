@@ -86,6 +86,7 @@ export const createStripeCheckoutSession = createServerFn({ method: "POST" })
       line_items: lineItems,
       mode: "payment",
       customer_email: user.email,
+      allow_promotion_codes: true,
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout?cancelled=true`,
       shipping_address_collection: {

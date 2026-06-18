@@ -120,11 +120,14 @@ function CheckoutPage() {
     setSubmitError(null);
 
     const checkoutSessionId = guestSessionId || getGuestCheckoutSessionId();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
 
     try {
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           checkoutSessionId,
           items: orderItems.map((item) => ({
@@ -140,6 +143,7 @@ function CheckoutPage() {
         }),
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (!response.ok) {
@@ -153,11 +157,14 @@ function CheckoutPage() {
       }
 
       window.location.href = data.url;
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : CHECKOUT_CONFIG_CLIENT_MESSAGE;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      let message = CHECKOUT_CONFIG_CLIENT_MESSAGE;
+      if (err.name === "AbortError") {
+        message = "Checkout request timed out. Please try again.";
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       setSubmitError(message);
       setSubmitting(false);
     }

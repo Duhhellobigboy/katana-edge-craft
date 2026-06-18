@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { ensureServerEnv } from "@/lib/env.server";
-import { getStripeClient, logStripeError } from "@/lib/stripe.server";
+import { getStripeClient, logStripeError, validateSandboxAccount } from "@/lib/stripe.server";
 import {
   getSiteUrl,
   isCheckoutProductKey,
@@ -39,65 +39,102 @@ const checkoutRequestSchema = z.object({
   phone: z.string().trim().min(7, "Phone number is required."),
 });
 
+function logTiming(
+  operationName: string,
+  elapsedMs: number,
+  productKey?: string,
+  priceId?: string,
+  errorMessage?: string
+) {
+  const priceSuffix = priceId ? priceId.slice(-6) : undefined;
+  console.log(
+    `[Checkout Timing] Operation: ${operationName}` +
+    ` | Elapsed: ${elapsedMs}ms` +
+    (productKey ? ` | Product: ${productKey}` : "") +
+    (priceSuffix ? ` | Price Suffix: ${priceSuffix}` : "") +
+    (errorMessage ? ` | Error: ${errorMessage}` : "")
+  );
+}
+
 function logCheckoutFailure(err: unknown) {
   if (err instanceof Error) {
-    console.error("[create-checkout-session]", err.message);
+    console.error("[create-checkout-session] Failure details:", err.message);
     return;
   }
-  console.error("[create-checkout-session]", err);
+  console.error("[create-checkout-session] Unknown failure:", err);
 }
 
 export const Route = createFileRoute("/api/create-checkout-session")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        let body: unknown;
+        const handlerStartTime = Date.now();
 
-        try {
-          body = await request.json();
-        } catch {
-          return Response.json({ error: "Invalid JSON body." }, { status: 400 });
-        }
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Checkout request timed out. Please try again.")), 15000)
+        );
 
-        const parsed = checkoutRequestSchema.safeParse(body);
-        if (!parsed.success) {
-          return Response.json(
-            { error: parsed.error.errors[0]?.message ?? "Invalid request." },
-            { status: 400 },
-          );
-        }
+        const checkoutLogic = async () => {
+          let body: unknown;
 
-        const { checkoutSessionId, items, fullName, email, phone } = parsed.data;
+          try {
+            body = await request.json();
+          } catch {
+            return Response.json({ error: "Invalid JSON body." }, { status: 400 });
+          }
 
-        try {
+          const parsed = checkoutRequestSchema.safeParse(body);
+          if (!parsed.success) {
+            return Response.json(
+              { error: parsed.error.errors[0]?.message ?? "Invalid request." },
+              { status: 400 },
+            );
+          }
+
+          const { checkoutSessionId, items, fullName, email, phone } = parsed.data;
+          const validationTime = Date.now() - handlerStartTime;
+          logTiming("request_validation", validationTime);
+
           ensureServerEnv();
 
           const stripe = getStripeClient();
+          await validateSandboxAccount(stripe);
           const siteUrl = getSiteUrl();
           const { createSupabaseServerClient } = await import("@/lib/supabase.server");
           const supabase = createSupabaseServerClient();
 
           // Resolve variant keys to Stripe Price IDs dynamically
+          const dbStartTime = Date.now();
           const resolvedLineItems = await Promise.all(
             items.map(async (item) => {
               let stripePriceId = "";
               let parentName = "";
               let stripeProductId = "";
 
-              // 1. Resolve variant from Supabase
+              // 1. Resolve variant from Supabase (wrapped in a 2-second timeout race)
               const isLegacyKey = item.variantKey === "microslit" || item.variantKey === "fujisan";
               
               if (item.variantKey) {
                 try {
-                  const { data: variant, error: vError } = await supabase
-                    .from("product_variants")
-                    .select("stripe_price_id, stripe_product_id, active, size_label, handle_label, style_label, products(name, active)")
-                    .eq("variant_key", item.variantKey)
-                    .maybeSingle();
+                  const dbLookup = async () => {
+                    const { data: variant, error: vError } = await supabase
+                      .from("product_variants")
+                      .select("stripe_price_id, stripe_product_id, active, size_label, handle_label, style_label, products(name, active)")
+                      .eq("variant_key", item.variantKey)
+                      .maybeSingle();
 
-                  if (vError) {
-                    throw new Error(`Database error querying variant: ${vError.message}`);
-                  }
+                    if (vError) {
+                      throw new Error(vError.message);
+                    }
+                    return variant;
+                  };
+
+                  const variant = await Promise.race([
+                    dbLookup(),
+                    new Promise<null>((_, reject) =>
+                      setTimeout(() => reject(new Error("Database variant lookup timed out")), 2000)
+                    )
+                  ]);
 
                   if (variant) {
                     if (!variant.active) {
@@ -119,40 +156,48 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                       throw new Error(`Invalid style combination for variant ${item.variantKey}.`);
                     }
 
-                    if (!variant.stripe_price_id) {
-                      throw new Error(`Stripe Price ID is missing for variant ${item.variantKey}.`);
+                    if (variant.stripe_price_id) {
+                      stripePriceId = variant.stripe_price_id;
                     }
-
-                    stripePriceId = variant.stripe_price_id;
                     stripeProductId = variant.stripe_product_id || "";
                     parentName = parent.name;
-                  } else if (!isLegacyKey) {
-                    // Non-legacy key not found in variants database table
-                    throw new Error(`Unknown variant key: ${item.variantKey}`);
                   }
                 } catch (dbErr: any) {
-                  // If it's a database error (e.g. table doesn't exist yet) but we are requesting a non-legacy key, we must reject it
-                  if (!isLegacyKey) {
-                    console.error("Stripe validation error for variant:", dbErr.message);
-                    throw new Error(dbErr.message || "Failed to resolve variant.");
-                  }
-                  console.warn("DB variant resolution failed for legacy key, falling back:", dbErr.message);
+                  logTiming("supabase_variant_lookup_fallback", Date.now() - dbStartTime, item.productKey, undefined, dbErr.message);
                 }
               }
 
-              // 2. Fallback to codebase environment configurations for legacy keys only
+              // 2. Fallback to codebase environment configurations for legacy keys or failed DB lookups
               if (!stripePriceId) {
-                if (!isLegacyKey) {
-                  throw new Error(`Unable to resolve Stripe Price ID for variant: ${item.variantKey}`);
+                const isProductKeyValid = isCheckoutProductKey(item.productKey);
+                if (!isLegacyKey && !isProductKeyValid) {
+                  throw new Error(`Unable to resolve variant and no valid fallback exists for: ${item.variantKey || item.productKey}`);
                 }
                 
-                if (!isCheckoutProductKey(item.productKey)) {
-                  throw new Error(`Unrecognized product: ${item.productKey}`);
-                }
-                const fallbackProduct = resolveCheckoutProduct(item.productKey);
+                const fallbackProduct = resolveCheckoutProduct(isProductKeyValid ? item.productKey : "microslit");
                 stripePriceId = fallbackProduct.priceId;
                 stripeProductId = fallbackProduct.productId || "";
                 parentName = fallbackProduct.name;
+              }
+
+              // 3. Override with environment variable if configured to ensure sandbox settings are respected
+              const PRODUCT_ENV_VAR_MAPPING: Record<string, string> = {
+                microslit: "STRIPE_MICROSLIT_PRICE_ID",
+                fujisan: "STRIPE_FUJISAN_PRICE_ID",
+                thunder: "STRIPE_THUNDER_PRICE_ID",
+                double_swivel: "STRIPE_DOUBLE_SWIVEL_PRICE_ID",
+                naruto: "STRIPE_NARUTO_PRICE_ID",
+                karakuri: "STRIPE_KARAKURI_PRICE_ID",
+                bamboo: "STRIPE_BAMBOO_PRICE_ID",
+                bamboo_thinning: "STRIPE_BAMBOO_THINNING_PRICE_ID",
+              };
+
+              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
+              const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey] || "";
+              const envPriceId = envVarName ? process.env[envVarName] : undefined;
+
+              if (envPriceId) {
+                stripePriceId = envPriceId;
               }
 
               if (!stripePriceId) {
@@ -167,7 +212,7 @@ export const Route = createFileRoute("/api/create-checkout-session")({
               };
             })
           );
-
+          
           const lineItems = resolvedLineItems.map((r) => ({
             price: r.price,
             quantity: r.quantity,
@@ -176,7 +221,9 @@ export const Route = createFileRoute("/api/create-checkout-session")({
           const primaryResolved = resolvedLineItems[0];
           const primary = items[0];
 
-          await upsertGuestCheckoutSession({
+          // Run Supabase guest session upsert in the background (fire-and-forget) to not block the redirect
+          const upsertStartTime = Date.now();
+          upsertGuestCheckoutSession({
             checkoutSessionId,
             fullName,
             email,
@@ -190,51 +237,112 @@ export const Route = createFileRoute("/api/create-checkout-session")({
               selected_style: item.selectedStyle,
               sku: item.sku,
             })),
+          }).then(() => {
+            logTiming("supabase_insert", Date.now() - upsertStartTime, primary.productKey, primaryResolved.price);
+          }).catch((dbErr: any) => {
+            logTiming("supabase_insert", Date.now() - upsertStartTime, primary.productKey, primaryResolved.price, dbErr.message || "Failed");
           });
 
+          // Build a compact cart summary array for Stripe metadata
+          const cartSummary = items.map((item, index) => {
+            const resolved = resolvedLineItems[index];
+            return {
+              product: resolved.name,
+              productKey: item.productKey,
+              variantKey: item.variantKey || item.productKey,
+              ...(item.selectedSize ? { size: item.selectedSize } : {}),
+              ...(item.selectedHandle ? { handle: item.selectedHandle } : {}),
+              ...(item.selectedStyle ? { style: item.selectedStyle } : {}),
+              ...(item.sku ? { sku: item.sku } : {}),
+              quantity: item.quantity,
+            };
+          });
+
+          let cartSummaryJson = JSON.stringify(cartSummary);
+          if (cartSummaryJson.length > 500) {
+            const compressed = cartSummary.map(({ product, ...rest }) => rest);
+            cartSummaryJson = JSON.stringify(compressed);
+          }
+          if (cartSummaryJson.length > 500) {
+            const ultraCompressed = cartSummary.map((s) => ({
+              vKey: s.variantKey,
+              qty: s.quantity,
+            }));
+            cartSummaryJson = JSON.stringify(ultraCompressed);
+          }
+          if (cartSummaryJson.length > 500) {
+            cartSummaryJson = cartSummaryJson.slice(0, 500);
+          }
+
+          const metadata = {
+            order_reference: checkoutSessionId,
+            checkout_session_id: checkoutSessionId, // legacy support
+            cart_item_count: items.reduce((acc, item) => acc + item.quantity, 0).toString(),
+            cart_summary_json: cartSummaryJson,
+            product_key: primary.productKey,
+            product_name: primaryResolved.name,
+            full_name: fullName,
+            email,
+            phone,
+            stripe_product_id: primaryResolved.productId || "",
+            cart_items: JSON.stringify(items).slice(0, 500), // legacy support
+          };
+
+          const stripeStartTime = Date.now();
           const session = await stripe.checkout.sessions.create({
             mode: "payment",
             payment_method_types: ["card"],
             line_items: lineItems,
             customer_email: email,
+            allow_promotion_codes: true,
             shipping_address_collection: {
               allowed_countries: ["US", "CA", "GB", "AU"],
             },
             success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${siteUrl}/checkout?cancelled=true`,
-            metadata: {
-              checkout_session_id: checkoutSessionId,
-              product_key: primary.productKey,
-              product_name: primaryResolved.name,
-              full_name: fullName,
-              email,
-              phone,
-              stripe_product_id: primaryResolved.productId || "",
-              cart_items: JSON.stringify(items),
+            metadata,
+            payment_intent_data: {
+              metadata,
             },
           });
+          const stripeTime = Date.now() - stripeStartTime;
+          logTiming("stripe_session_create", stripeTime, primary.productKey, primaryResolved.price);
 
           if (!session.url) {
-            console.error("[create-checkout-session] Stripe returned no checkout URL.");
-            return Response.json(
-              { error: toClientCheckoutError("Stripe did not return a checkout URL.") },
-              { status: 500 },
-            );
+            throw new Error("Stripe did not return a checkout URL.");
           }
 
-          await attachStripeSessionToGuest({
+          // Run Database associations update in the background (fire-and-forget) to not block the redirect
+          const attachStartTime = Date.now();
+          attachStripeSessionToGuest({
             checkoutSessionId,
             stripeCheckoutSessionId: session.id,
+          }).then(() => {
+            logTiming("attach_session_db", Date.now() - attachStartTime, primary.productKey, primaryResolved.price);
+          }).catch((dbErr: any) => {
+            logTiming("attach_session_db", Date.now() - attachStartTime, primary.productKey, primaryResolved.price, dbErr.message || "Failed");
           });
 
+          const totalElapsed = Date.now() - handlerStartTime;
+          logTiming("final_response", totalElapsed, primary.productKey, primaryResolved.price);
+
           return Response.json({ url: session.url });
-        } catch (err) {
+        };
+
+        try {
+          return await Promise.race([checkoutLogic(), timeoutPromise]);
+        } catch (err: any) {
+          const totalElapsed = Date.now() - handlerStartTime;
+          logTiming("final_response", totalElapsed, undefined, undefined, err.message || "Checkout failed");
           logStripeError(err);
           logCheckoutFailure(err);
 
-          const serverMessage =
-            err instanceof Error ? err.message : "Stripe checkout failed.";
-          const status = isCheckoutConfigError(serverMessage) ? 503 : 500;
+          const serverMessage = err instanceof Error ? err.message : "Stripe checkout failed.";
+          const status = serverMessage.includes("timed out")
+            ? 504
+            : isCheckoutConfigError(serverMessage)
+              ? 503
+              : 500;
 
           return Response.json(
             { error: toClientCheckoutError(serverMessage) },
