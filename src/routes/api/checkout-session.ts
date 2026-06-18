@@ -19,7 +19,14 @@ export const Route = createFileRoute("/api/checkout-session")({
 
         try {
           ensureServerEnv();
-          const session = await getGuestCheckoutSession(checkoutSessionId);
+          
+          // Wrap the database lookup in a 3-second timeout race to prevent page load hangs
+          const dbQueryPromise = getGuestCheckoutSession(checkoutSessionId);
+          const timeoutPromise = new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error("Database lookup timed out")), 3000)
+          );
+
+          const session = await Promise.race([dbQueryPromise, timeoutPromise]);
 
           if (!session) {
             return Response.json({ session: null });
@@ -38,9 +45,10 @@ export const Route = createFileRoute("/api/checkout-session")({
             );
           }
 
+          // Return null session on timeout or other database failures to allow user manual form entry
           return Response.json(
             { error: "Failed to load checkout session.", session: null },
-            { status: 500 },
+            { status: 200 }, // Using 200 with null session to let frontend recover gracefully
           );
         }
       },

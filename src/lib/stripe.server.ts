@@ -12,7 +12,6 @@ let cachedSecretKey: string | null = null;
 
 export function getStripeClient() {
   ensureServerEnv();
-  logStripeEnvDebug();
 
   const validation = validateStripeSecretKey(process.env.STRIPE_SECRET_KEY);
 
@@ -63,24 +62,30 @@ export async function validateSandboxAccount(stripe: Stripe) {
     .map((name) => process.env[name])
     .filter(Boolean) as string[];
 
-  // Validate price IDs in parallel against Stripe account
-  await Promise.all(
+  // Mark as validated immediately to prevent concurrent validation runs
+  sandboxValidated = true;
+
+  // Run validation in the background (fire-and-forget) to avoid network latency on the critical checkout path
+  Promise.all(
     presentPriceIds.map(async (priceId) => {
       try {
         const price = await stripe.prices.retrieve(priceId);
         if (!price.active) {
-          console.warn(`[stripe-validate] Warning: Price ID ${priceId} is inactive on Stripe.`);
+          const suffix = priceId.slice(-6);
+          console.warn(`[stripe-validate] Warning: Price ID suffix ${suffix} is inactive on Stripe.`);
         }
       } catch (err: any) {
-        throw new Error(
-          `Price ID ${priceId} validation failed. It may not belong to the configured Stripe sandbox account: ${err.message}`
+        const suffix = priceId.slice(-6);
+        console.error(
+          `[stripe-validate] Price ID suffix ${suffix} validation failed. It may not belong to the configured Stripe sandbox account: ${err.message}`
         );
       }
     })
-  );
-
-  sandboxValidated = true;
-  console.log("[stripe-validate] All configured Price IDs successfully validated against sandbox account.");
+  ).then(() => {
+    console.log("[stripe-validate] Background validation of configured Price IDs completed.");
+  }).catch((err) => {
+    console.error("[stripe-validate] Background Price ID validation failed:", err.message || err);
+  });
 }
 
 export function logStripeError(err: unknown) {
