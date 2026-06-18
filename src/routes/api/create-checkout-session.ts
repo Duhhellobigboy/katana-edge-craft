@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { ensureServerEnv } from "@/lib/env.server";
-import { getStripeClient, logStripeError } from "@/lib/stripe.server";
+import { getStripeClient, logStripeError, validateSandboxAccount } from "@/lib/stripe.server";
 import {
   getSiteUrl,
   isCheckoutProductKey,
@@ -73,6 +73,7 @@ export const Route = createFileRoute("/api/create-checkout-session")({
           ensureServerEnv();
 
           const stripe = getStripeClient();
+          await validateSandboxAccount(stripe);
           const siteUrl = getSiteUrl();
           const { createSupabaseServerClient } = await import("@/lib/supabase.server");
           const supabase = createSupabaseServerClient();
@@ -155,6 +156,32 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                 parentName = fallbackProduct.name;
               }
 
+              // 3. Override with environment variable if configured to ensure sandbox settings are respected
+              const PRODUCT_ENV_VAR_MAPPING: Record<string, string> = {
+                microslit: "STRIPE_MICROSLIT_PRICE_ID",
+                fujisan: "STRIPE_FUJISAN_PRICE_ID",
+                thunder: "STRIPE_THUNDER_PRICE_ID",
+                double_swivel: "STRIPE_DOUBLE_SWIVEL_PRICE_ID",
+                naruto: "STRIPE_NARUTO_PRICE_ID",
+                karakuri: "STRIPE_KARAKURI_PRICE_ID",
+                bamboo: "STRIPE_BAMBOO_PRICE_ID",
+                bamboo_thinning: "STRIPE_BAMBOO_THINNING_PRICE_ID",
+              };
+
+              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
+              const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey] || "";
+              const envPriceId = envVarName ? process.env[envVarName] : undefined;
+
+              if (envPriceId) {
+                stripePriceId = envPriceId;
+              }
+
+              // Temporary safe server logging showing key resolution metrics
+              console.log("[stripe-resolve] Resolved product key:", prodKey);
+              console.log("[stripe-resolve] Environment variable name used:", envVarName || "none");
+              console.log("[stripe-resolve] Price ID (last 6 chars):", stripePriceId ? `...${stripePriceId.slice(-6)}` : "missing");
+              console.log("[stripe-resolve] STRIPE_SECRET_KEY exists:", Boolean(process.env.STRIPE_SECRET_KEY));
+
               if (!stripePriceId) {
                 throw new Error(`Unable to resolve Stripe Price ID for item: ${item.variantKey || item.productKey}`);
               }
@@ -192,25 +219,67 @@ export const Route = createFileRoute("/api/create-checkout-session")({
             })),
           });
 
+          // Build a compact cart summary array for Stripe metadata
+          const cartSummary = items.map((item, index) => {
+            const resolved = resolvedLineItems[index];
+            return {
+              product: resolved.name,
+              productKey: item.productKey,
+              variantKey: item.variantKey || item.productKey,
+              ...(item.selectedSize ? { size: item.selectedSize } : {}),
+              ...(item.selectedHandle ? { handle: item.selectedHandle } : {}),
+              ...(item.selectedStyle ? { style: item.selectedStyle } : {}),
+              ...(item.sku ? { sku: item.sku } : {}),
+              quantity: item.quantity,
+            };
+          });
+
+          let cartSummaryJson = JSON.stringify(cartSummary);
+          if (cartSummaryJson.length > 500) {
+            console.warn("[create-checkout-session] cart_summary_json too long, removing display names");
+            const compressed = cartSummary.map(({ product, ...rest }) => rest);
+            cartSummaryJson = JSON.stringify(compressed);
+          }
+          if (cartSummaryJson.length > 500) {
+            console.warn("[create-checkout-session] cart_summary_json still too long, retaining only keys and quantity");
+            const ultraCompressed = cartSummary.map((s) => ({
+              vKey: s.variantKey,
+              qty: s.quantity,
+            }));
+            cartSummaryJson = JSON.stringify(ultraCompressed);
+          }
+          if (cartSummaryJson.length > 500) {
+            cartSummaryJson = cartSummaryJson.slice(0, 500);
+          }
+
+          const metadata = {
+            order_reference: checkoutSessionId,
+            checkout_session_id: checkoutSessionId, // legacy support
+            cart_item_count: items.reduce((acc, item) => acc + item.quantity, 0).toString(),
+            cart_summary_json: cartSummaryJson,
+            product_key: primary.productKey,
+            product_name: primaryResolved.name,
+            full_name: fullName,
+            email,
+            phone,
+            stripe_product_id: primaryResolved.productId || "",
+            cart_items: JSON.stringify(items).slice(0, 500), // legacy support with slice fallback to prevent Stripe errors
+          };
+
           const session = await stripe.checkout.sessions.create({
             mode: "payment",
             payment_method_types: ["card"],
             line_items: lineItems,
             customer_email: email,
+            allow_promotion_codes: true,
             shipping_address_collection: {
               allowed_countries: ["US", "CA", "GB", "AU"],
             },
             success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${siteUrl}/checkout?cancelled=true`,
-            metadata: {
-              checkout_session_id: checkoutSessionId,
-              product_key: primary.productKey,
-              product_name: primaryResolved.name,
-              full_name: fullName,
-              email,
-              phone,
-              stripe_product_id: primaryResolved.productId || "",
-              cart_items: JSON.stringify(items),
+            metadata,
+            payment_intent_data: {
+              metadata,
             },
           });
 

@@ -57,7 +57,7 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
   }
 
   const metadata = session.metadata ?? {};
-  const checkoutSessionId = metadata.checkout_session_id ?? "";
+  const checkoutSessionId = metadata.order_reference ?? metadata.checkout_session_id ?? "";
   const productKey = metadata.product_key ?? "";
   const productName = metadata.product_name ?? "Katana Edge Shears";
   const fullName = metadata.full_name ?? session.customer_details?.name ?? "";
@@ -109,10 +109,22 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
   let cartMetaItems: CartMetaItem[] = [];
 
   try {
-    if (metadata.cart_items) {
+    if (metadata.cart_summary_json) {
+      const parsedSummary = JSON.parse(metadata.cart_summary_json);
+      cartMetaItems = parsedSummary.map((s: any) => ({
+        productKey: s.productKey || s.variantKey?.split("_")[0] || "",
+        variantKey: s.variantKey || "",
+        quantity: s.quantity ?? 1,
+        selectedSize: s.size || undefined,
+        selectedHandle: s.handle || undefined,
+        selectedStyle: s.style || undefined,
+        sku: s.sku || undefined,
+      }));
+    } else if (metadata.cart_items) {
       cartMetaItems = JSON.parse(metadata.cart_items) as CartMetaItem[];
     }
-  } catch {
+  } catch (err) {
+    console.error("Failed to parse cart metadata in webhook:", err);
     cartMetaItems = [];
   }
 
