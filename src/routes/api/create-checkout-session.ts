@@ -111,7 +111,7 @@ export const Route = createFileRoute("/api/create-checkout-session")({
               let parentName = "";
               let stripeProductId = "";
 
-              // 1. Resolve variant from Supabase (wrapped in a 2-second timeout race)
+              // 1. Resolve variant details from Supabase if possible (timeout after 2s)
               const isLegacyKey = item.variantKey === "microslit" || item.variantKey === "fujisan";
               
               if (item.variantKey) {
@@ -156,9 +156,6 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                       throw new Error(`Invalid style combination for variant ${item.variantKey}.`);
                     }
 
-                    if (variant.stripe_price_id) {
-                      stripePriceId = variant.stripe_price_id;
-                    }
                     stripeProductId = variant.stripe_product_id || "";
                     parentName = parent.name;
                   }
@@ -167,20 +164,19 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                 }
               }
 
-              // 2. Fallback to codebase environment configurations for legacy keys or failed DB lookups
-              if (!stripePriceId) {
-                const isProductKeyValid = isCheckoutProductKey(item.productKey);
-                if (!isLegacyKey && !isProductKeyValid) {
-                  throw new Error(`Unable to resolve variant and no valid fallback exists for: ${item.variantKey || item.productKey}`);
-                }
-                
-                const fallbackProduct = resolveCheckoutProduct(isProductKeyValid ? item.productKey : "microslit");
-                stripePriceId = fallbackProduct.priceId;
+              // 2. Resolve fallback parentName and stripeProductId from codebase configuration if database lookup was skipped or failed
+              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
+              const isProductKeyValid = isCheckoutProductKey(prodKey);
+              if (!parentName && (isLegacyKey || isProductKeyValid)) {
+                const fallbackProduct = resolveCheckoutProduct(isProductKeyValid ? (prodKey as any) : "microslit");
                 stripeProductId = fallbackProduct.productId || "";
                 parentName = fallbackProduct.name;
               }
+              if (!parentName) {
+                parentName = prodKey.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              }
 
-              // 3. Override with environment variable if configured to ensure sandbox settings are respected
+              // 3. Resolve the Stripe Price ID strictly from the environment variables for all 8 products
               const PRODUCT_ENV_VAR_MAPPING: Record<string, string> = {
                 microslit: "STRIPE_MICROSLIT_PRICE_ID",
                 fujisan: "STRIPE_FUJISAN_PRICE_ID",
@@ -192,17 +188,13 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                 bamboo_thinning: "STRIPE_BAMBOO_THINNING_PRICE_ID",
               };
 
-              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
               const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey] || "";
               const envPriceId = envVarName ? process.env[envVarName] : undefined;
 
-              if (envPriceId) {
-                stripePriceId = envPriceId;
+              if (!envPriceId) {
+                throw new Error(`Unable to resolve Stripe Price ID: missing environment variable ${envVarName} for product ${prodKey}`);
               }
-
-              if (!stripePriceId) {
-                throw new Error(`Unable to resolve Stripe Price ID for item: ${item.variantKey || item.productKey}`);
-              }
+              stripePriceId = envPriceId;
 
               return {
                 price: stripePriceId,
@@ -247,20 +239,19 @@ export const Route = createFileRoute("/api/create-checkout-session")({
           const cartSummary = items.map((item, index) => {
             const resolved = resolvedLineItems[index];
             return {
-              product: resolved.name,
-              productKey: item.productKey,
+              productName: resolved.name,
               variantKey: item.variantKey || item.productKey,
-              ...(item.selectedSize ? { size: item.selectedSize } : {}),
-              ...(item.selectedHandle ? { handle: item.selectedHandle } : {}),
-              ...(item.selectedStyle ? { style: item.selectedStyle } : {}),
-              ...(item.sku ? { sku: item.sku } : {}),
+              selectedSize: item.selectedSize || "",
+              selectedHandle: item.selectedHandle || "",
+              selectedStyle: item.selectedStyle || "",
               quantity: item.quantity,
+              sku: item.sku || "",
             };
           });
 
           let cartSummaryJson = JSON.stringify(cartSummary);
           if (cartSummaryJson.length > 500) {
-            const compressed = cartSummary.map(({ product, ...rest }) => rest);
+            const compressed = cartSummary.map(({ productName, ...rest }) => rest);
             cartSummaryJson = JSON.stringify(compressed);
           }
           if (cartSummaryJson.length > 500) {
@@ -286,6 +277,17 @@ export const Route = createFileRoute("/api/create-checkout-session")({
             phone,
             stripe_product_id: primaryResolved.productId || "",
             cart_items: JSON.stringify(items).slice(0, 500), // legacy support
+            selected_size: primary.selectedSize || "",
+            selected_handle: primary.selectedHandle || "",
+            selected_style: primary.selectedStyle || "",
+            sku: primary.sku || "",
+            // Root-level camelCase fields for verification checks
+            selectedSize: primary.selectedSize || "",
+            selectedHandle: primary.selectedHandle || "",
+            selectedStyle: primary.selectedStyle || "",
+            variantKey: primary.variantKey || primary.productKey,
+            productName: primaryResolved.name,
+            quantity: primary.quantity.toString(),
           };
 
           const stripeStartTime = Date.now();

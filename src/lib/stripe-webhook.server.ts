@@ -115,9 +115,10 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
         productKey: s.productKey || s.variantKey?.split("_")[0] || "",
         variantKey: s.variantKey || "",
         quantity: s.quantity ?? 1,
-        selectedSize: s.size || undefined,
-        selectedHandle: s.handle || undefined,
-        selectedStyle: s.style || undefined,
+        productName: s.productName || s.product || undefined,
+        selectedSize: s.selectedSize || s.size || undefined,
+        selectedHandle: s.selectedHandle || s.handle || undefined,
+        selectedStyle: s.selectedStyle || s.style || undefined,
         sku: s.sku || undefined,
       }));
     } else if (metadata.cart_items) {
@@ -129,8 +130,31 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
   }
 
   if (cartMetaItems.length === 0 && isCheckoutProductKey(productKey)) {
-    cartMetaItems = [{ productKey, quantity: 1 }];
+    cartMetaItems = [{
+      productKey,
+      quantity: 1,
+      selectedSize: metadata.selected_size || metadata.selectedSize || undefined,
+      selectedHandle: metadata.selected_handle || metadata.selectedHandle || undefined,
+      selectedStyle: metadata.selected_style || metadata.selectedStyle || undefined,
+      sku: metadata.sku || undefined,
+    }];
+  } else if (cartMetaItems.length > 0) {
+    const firstItem = cartMetaItems[0];
+    if (firstItem) {
+      if (!firstItem.selectedSize && (metadata.selected_size || metadata.selectedSize)) {
+        firstItem.selectedSize = metadata.selected_size || metadata.selectedSize;
+      }
+      if (!firstItem.selectedHandle && (metadata.selected_handle || metadata.selectedHandle)) {
+        firstItem.selectedHandle = metadata.selected_handle || metadata.selectedHandle;
+      }
+      if (!firstItem.selectedStyle && (metadata.selected_style || metadata.selectedStyle)) {
+        firstItem.selectedStyle = metadata.selected_style || metadata.selectedStyle;
+      }
+      if (!firstItem.sku && metadata.sku) firstItem.sku = metadata.sku;
+    }
   }
+
+  const resolvedItems = [];
 
   for (const item of cartMetaItems) {
     let unitPriceCents = 0;
@@ -194,6 +218,22 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
       selected_style: variantStyle,
       sku: variantSku,
     });
+
+    resolvedItems.push({
+      productKey: item.productKey,
+      variantKey: item.variantKey || null,
+      quantity: qty,
+      productName: finalItemName,
+      unitPriceCents,
+      totalPriceCents: unitPriceCents * qty,
+      selectedSize: variantSize,
+      selectedHandle: variantHandle,
+      selectedStyle: variantStyle,
+      sku: variantSku,
+      selected_size: variantSize,
+      selected_handle: variantHandle,
+      selected_style: variantStyle,
+    });
   }
 
   await supabase
@@ -209,7 +249,7 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
   const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
   if (n8nWebhookUrl) {
     try {
-      const primaryItem = cartMetaItems[0];
+      const primaryItem = resolvedItems[0] || cartMetaItems[0];
       const n8nPayload = {
         event: "order_paid",
         checkout_session_id: checkoutSessionId,
@@ -217,18 +257,21 @@ async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session)
         customer_email: email,
         phone,
         product_key: primaryItem?.productKey ?? productKey,
-        product_name: productName,
+        product_name: primaryItem?.productName ?? productName,
         quantity: primaryItem?.quantity ?? 1,
-        items: cartMetaItems,
+        items: resolvedItems,
         total: totalCents,
         currency: session.currency ?? "usd",
         stripe_checkout_session_id: stripeSessionId,
         // Detailed primary variant selections at root level for automation
         variant_key: primaryItem?.variantKey || null,
-        selected_size: primaryItem?.selectedSize || null,
-        selected_handle: primaryItem?.selectedHandle || null,
-        selected_style: primaryItem?.selectedStyle || null,
+        selected_size: primaryItem?.selectedSize || primaryItem?.selected_size || null,
+        selected_handle: primaryItem?.selectedHandle || primaryItem?.selected_handle || null,
+        selected_style: primaryItem?.selectedStyle || primaryItem?.selected_style || null,
         sku: primaryItem?.sku || null,
+        selectedSize: primaryItem?.selectedSize || primaryItem?.selected_size || null,
+        selectedHandle: primaryItem?.selectedHandle || primaryItem?.selected_handle || null,
+        selectedStyle: primaryItem?.selectedStyle || primaryItem?.selected_style || null,
       };
 
       const n8nResponse = await fetch(n8nWebhookUrl, {
