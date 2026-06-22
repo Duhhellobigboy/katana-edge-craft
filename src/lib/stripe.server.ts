@@ -38,8 +38,8 @@ export async function validateSandboxAccount(stripe: Stripe) {
   if (sandboxValidated) return;
 
   const secretKey = process.env.STRIPE_SECRET_KEY || "";
-  if (!secretKey.startsWith("sk_test_")) {
-    throw new Error("STRIPE_SECRET_KEY must be a sandbox test key (starting with sk_test_).");
+  if (!secretKey.startsWith("sk_test_") && !secretKey.startsWith("sk_live_")) {
+    throw new Error("STRIPE_SECRET_KEY must start with sk_test_ or sk_live_.");
   }
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;

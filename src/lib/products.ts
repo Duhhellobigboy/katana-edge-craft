@@ -8,6 +8,12 @@ import microslitImg2 from "@/assets/microslit/microslit-2.png";
 import microslitImg3 from "@/assets/microslit/microslit-3.png";
 import microslitImg4 from "@/assets/microslit/microslit-4.png";
 import microslitVideo from "@/assets/microslit/microslit.mp4";
+import thunderVideo from "@/assets/thunder/video.mp4";
+import doubleSwivelVideo from "@/assets/double-swivel/video.mp4";
+import narutoVideo from "@/assets/naruto/video.mp4";
+import karakuriVideo from "@/assets/karakuri/video.mp4";
+import bambooVideo from "@/assets/bamboo/video.mp4";
+import bambooThinningVideo from "@/assets/bamboo-thinning/video.mp4";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -142,6 +148,7 @@ export const products: Product[] = [
     price: 679.99,
     image: "/products/thunder/main.webp",
     gallery: ["/products/thunder/main.webp"],
+    video: thunderVideo,
     rating: 0,
     reviewCount: 0,
     shortDescription: "Heavy-duty slicing shears optimized for thick textures and raw power.",
@@ -162,6 +169,7 @@ export const products: Product[] = [
     price: 879.99,
     image: "/products/double-swivel/main.webp",
     gallery: ["/products/double-swivel/main.webp"],
+    video: doubleSwivelVideo,
     rating: 0,
     reviewCount: 0,
     shortDescription: "Double-articulating swivel-handle shears offering maximum ergonomic comfort and wrist relief.",
@@ -182,6 +190,7 @@ export const products: Product[] = [
     price: 579.99,
     image: "/products/naruto/main.webp",
     gallery: ["/products/naruto/main.webp"],
+    video: narutoVideo,
     rating: 0,
     reviewCount: 0,
     shortDescription: "Ergonomic thinning shears with custom circular cutouts for smooth blending.",
@@ -201,6 +210,7 @@ export const products: Product[] = [
     price: 719.99,
     image: "/products/karakuri/main.webp",
     gallery: ["/products/karakuri/main.webp"],
+    video: karakuriVideo,
     rating: 0,
     reviewCount: 0,
     shortDescription: "Professional offsets shears featuring a tactical matte black handle coating.",
@@ -222,6 +232,7 @@ export const products: Product[] = [
     price: 519.99,
     image: "/products/bamboo/main.webp",
     gallery: ["/products/bamboo/main.webp"],
+    video: bambooVideo,
     rating: 0,
     reviewCount: 0,
     shortDescription: "Classic straight shears fitted with a green-jewel tension adjuster.",
@@ -243,6 +254,7 @@ export const products: Product[] = [
     price: 419.99,
     image: "/products/bamboo-thinning/main.webp",
     gallery: ["/products/bamboo-thinning/main.webp"],
+    video: bambooThinningVideo,
     rating: 0,
     reviewCount: 0,
     shortDescription: "30 Teeth: Specifically crafted for efficient bulk removal, these shears offer quick and controlled thinning.",

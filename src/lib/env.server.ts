@@ -87,11 +87,11 @@ export function validateStripeSecretKey(
     };
   }
 
-  if (!key.startsWith("sk_test_")) {
+  if (!key.startsWith("sk_test_") && !key.startsWith("sk_live_")) {
     return {
       valid: false,
       key: null,
-      reason: "STRIPE_SECRET_KEY must start with sk_test_ (sandbox mode required).",
+      reason: "STRIPE_SECRET_KEY must start with sk_test_ or sk_live_.",
     };
   }
 

@@ -15,7 +15,7 @@ import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
 import { formatProductPrice, getProduct, products, type Product, getDbProductBySlug, getAllDbProducts } from "@/lib/products";
-import { MAX_CHECKOUT_QUANTITY } from "@/lib/product-keys";
+import { MAX_CHECKOUT_QUANTITY, slugToProductKey } from "@/lib/product-keys";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
@@ -278,9 +278,7 @@ function ProductPage() {
     addItem(
       {
         slug: product.slug,
-        productKey: product.slug === "micro-slit-shears" ? "microslit" :
-                    product.slug === "fujisan-thinning-shears" ? "fujisan" :
-                    product.slug.replace("-shears", "").replace("-thinning", "").replace("-", "_") as any,
+        productKey: slugToProductKey(product.slug) || (product.slug.replace("-shears", "").replace("-thinning", "").replace("-", "_") as any),
         variantKey,
         name: product.name,
         price: finalPrice,
