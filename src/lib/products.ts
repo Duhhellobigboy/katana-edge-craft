@@ -68,6 +68,10 @@ export type Product = {
   bestSeller?: boolean;
   displayOrder?: number;
   active?: boolean;
+  
+  video_url?: string;
+  gallery_urls?: string[];
+  availability?: "Available" | "Coming Soon";
 
   // Specification options for UI selectors
   inchesOptions?: string[];
@@ -324,6 +328,10 @@ async function getDynamicGallery(
 // Server function to get all products merged with database values (bypassing client RLS)
 export const getAllDbProducts = createServerFn({ method: "GET" })
   .handler(async (): Promise<Product[]> => {
+    let dbProductsData: any[] = [];
+    let dbVariants: any[] = [];
+
+    // 1. Try fetching from Supabase
     try {
       const { createSupabaseServerClient } = await import("./supabase.server");
       const supabase = createSupabaseServerClient();
@@ -331,9 +339,11 @@ export const getAllDbProducts = createServerFn({ method: "GET" })
       const { data, error } = await supabase
         .from("products")
         .select("*");
+      if (!error && data) {
+        dbProductsData = data;
+      }
 
       // Fetch all public active variants safely (hybrid fallback if not exist)
-      let dbVariants: any[] = [];
       try {
         const { data: vData, error: vError } = await supabase
           .from("product_variants_public")
@@ -345,71 +355,95 @@ export const getAllDbProducts = createServerFn({ method: "GET" })
       } catch (vErr) {
         console.error("Failed to query product_variants_public, using empty array:", vErr);
       }
-
-      if (error || !data || data.length === 0) {
-        return Promise.all(
-          products.map(async (fallback) => ({
-            ...fallback,
-            gallery: await getDynamicGallery(fallback.slug, fallback.image, fallback.gallery),
-          }))
-        );
-      }
-
-      return Promise.all(
-        products.map(async (fallback) => {
-          const dbProduct = data.find((p) => p.slug === fallback.slug);
-          const productVariants = dbVariants
-            .filter((v) => dbProduct && v.product_id === dbProduct.id)
-            .map((v) => ({
-              id: v.id,
-              productId: v.product_id,
-              variantKey: v.variant_key,
-              sizeLabel: v.size_label || undefined,
-              handleLabel: v.handle_label || undefined,
-              styleLabel: v.style_label || undefined,
-              priceCents: v.price_cents,
-              compareAtCents: v.compare_at_cents || undefined,
-              currency: v.currency,
-              active: v.active,
-              sortOrder: v.sort_order,
-            }));
-
-          const baseProduct = dbProduct ? {
-            ...fallback,
-            name: dbProduct.name,
-            tagline: dbProduct.tagline || fallback.tagline,
-            price: dbProduct.price_cents !== null && dbProduct.price_cents !== undefined && dbProduct.price_cents !== 0 ? dbProduct.price_cents / 100 : fallback.price,
-            compareAt: dbProduct.compare_at_cents ? dbProduct.compare_at_cents / 100 : fallback.compareAt,
-            image: dbProduct.image_url || fallback.image,
-            rating: dbProduct.rating ? Number(dbProduct.rating) : fallback.rating,
-            reviewCount: dbProduct.review_count !== null && dbProduct.review_count !== undefined ? dbProduct.review_count : fallback.reviewCount,
-            shortDescription: dbProduct.short_description || fallback.shortDescription,
-            longDescription: dbProduct.long_description || fallback.longDescription,
-            features: Array.isArray(dbProduct.features) && dbProduct.features.length > 0 ? dbProduct.features : fallback.features,
-            benefits: Array.isArray(dbProduct.benefits) && dbProduct.benefits.length > 0 ? dbProduct.benefits : fallback.benefits,
-            useCases: Array.isArray(dbProduct.use_cases) && dbProduct.use_cases.length > 0 ? dbProduct.use_cases : fallback.useCases,
-            specs: Array.isArray(dbProduct.specs) && dbProduct.specs.length > 0 ? dbProduct.specs : fallback.specs,
-            faq: Array.isArray(dbProduct.faq) && dbProduct.faq.length > 0 ? dbProduct.faq : fallback.faq,
-            active: dbProduct.active !== null && dbProduct.active !== undefined ? dbProduct.active : fallback.active,
-            variants: productVariants.length > 0 ? productVariants : undefined,
-          } : fallback;
-
-          const dynamicGallery = await getDynamicGallery(baseProduct.slug, baseProduct.image, fallback.gallery);
-          return {
-            ...baseProduct,
-            gallery: dynamicGallery,
-          };
-        })
-      );
     } catch (err) {
-      console.error("Error in getAllDbProducts server function:", err);
-      return Promise.all(
-        products.map(async (fallback) => ({
-          ...fallback,
-          gallery: await getDynamicGallery(fallback.slug, fallback.image, fallback.gallery),
-        }))
-      );
+      console.warn("Supabase fetch failed in getAllDbProducts, using local/defaults only", err);
     }
+
+    // 2. Read local site-products.json if exists
+    let localProducts: Record<string, any> = {};
+    try {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const filePath = path.resolve(process.cwd(), "src/lib/site-products.json");
+      if (fs.existsSync(filePath)) {
+        localProducts = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      }
+    } catch (err) {
+      console.error("Error reading site-products.json:", err);
+    }
+
+    // 3. Map fallbacks merged with Supabase and local JSON copy overrides
+    return Promise.all(
+      products.map(async (fallback) => {
+        const dbProduct = dbProductsData.find((p) => p.slug === fallback.slug);
+        const localProduct = localProducts[fallback.slug];
+
+        const productVariants = dbVariants
+          .filter((v) => dbProduct && v.product_id === dbProduct.id)
+          .map((v) => ({
+            id: v.id,
+            productId: v.product_id,
+            variantKey: v.variant_key,
+            sizeLabel: v.size_label || undefined,
+            handleLabel: v.handle_label || undefined,
+            styleLabel: v.style_label || undefined,
+            priceCents: v.price_cents,
+            compareAtCents: v.compare_at_cents || undefined,
+            currency: v.currency,
+            active: v.active,
+            sortOrder: v.sort_order,
+          }));
+
+        const name = localProduct?.name || dbProduct?.name || fallback.name;
+        const tagline = localProduct?.tagline || dbProduct?.tagline || fallback.tagline;
+        const price = dbProduct?.price_cents !== null && dbProduct?.price_cents !== undefined && dbProduct?.price_cents !== 0 ? dbProduct.price_cents / 100 : fallback.price;
+        const compareAt = dbProduct?.compare_at_cents ? dbProduct.compare_at_cents / 100 : fallback.compareAt;
+        const image = localProduct?.image || dbProduct?.image_url || fallback.image;
+        const rating = dbProduct?.rating ? Number(dbProduct.rating) : fallback.rating;
+        const reviewCount = dbProduct?.review_count !== null && dbProduct?.review_count !== undefined ? dbProduct.review_count : fallback.reviewCount;
+        const shortDescription = localProduct?.shortDescription || dbProduct?.short_description || fallback.shortDescription;
+        const longDescription = localProduct?.longDescription || dbProduct?.long_description || fallback.longDescription;
+        const features = (localProduct?.features && localProduct.features.length > 0) ? localProduct.features : (Array.isArray(dbProduct?.features) && dbProduct.features.length > 0 ? dbProduct.features : fallback.features);
+        const benefits = (localProduct?.benefits && localProduct.benefits.length > 0) ? localProduct.benefits : (Array.isArray(dbProduct?.benefits) && dbProduct.benefits.length > 0 ? dbProduct.benefits : fallback.benefits);
+        const specs = (localProduct?.specs && localProduct.specs.length > 0) ? localProduct.specs : (Array.isArray(dbProduct?.specs) && dbProduct.specs.length > 0 ? dbProduct.specs : fallback.specs);
+        const faq = (localProduct?.faq && localProduct.faq.length > 0) ? localProduct.faq : (Array.isArray(dbProduct?.faq) && dbProduct.faq.length > 0 ? dbProduct.faq : fallback.faq);
+        const active = dbProduct?.active !== null && dbProduct?.active !== undefined ? dbProduct.active : fallback.active;
+        const video = localProduct?.videoUrl || dbProduct?.video_url || fallback.video;
+        const galleryUrls = localProduct?.galleryUrls || dbProduct?.gallery_urls || undefined;
+        const availability = localProduct?.availability || dbProduct?.availability || undefined;
+
+        const baseProduct = {
+          ...fallback,
+          name,
+          tagline,
+          price,
+          compareAt,
+          image,
+          rating,
+          reviewCount,
+          shortDescription,
+          longDescription,
+          features,
+          benefits,
+          specs,
+          faq,
+          active,
+          variants: productVariants.length > 0 ? productVariants : undefined,
+          video,
+          video_url: video,
+          gallery_urls: galleryUrls,
+          availability,
+        };
+
+        const dbGallery = galleryUrls || (dbProduct && Array.isArray(dbProduct.gallery_urls) && dbProduct.gallery_urls.length > 0 ? dbProduct.gallery_urls : null);
+        const dynamicGallery = dbGallery || await getDynamicGallery(baseProduct.slug, baseProduct.image, fallback.gallery);
+
+        return {
+          ...baseProduct,
+          gallery: dynamicGallery,
+        };
+      })
+    );
   });
 
 // Server function to get a single product by slug merged with database values
@@ -420,6 +454,11 @@ export const getDbProductBySlug = createServerFn({ method: "GET" })
     if (!fallbackProduct) {
       throw new Error(`Product not found: ${slug}`);
     }
+
+    let dbProduct: any = null;
+    let dbVariants: any[] = [];
+
+    // 1. Try querying Supabase
     try {
       const { createSupabaseServerClient } = await import("./supabase.server");
       const supabase = createSupabaseServerClient();
@@ -429,89 +468,161 @@ export const getDbProductBySlug = createServerFn({ method: "GET" })
         .eq("slug", slug)
         .maybeSingle();
 
-      if (error || !data) {
-        return {
-          ...fallbackProduct,
-          gallery: await getDynamicGallery(fallbackProduct.slug, fallbackProduct.image, fallbackProduct.gallery),
-        };
-      }
+      if (!error && data) {
+        dbProduct = data;
 
-      // Fetch active variants safely for this specific product (hybrid fallback)
-      let dbVariants: any[] = [];
-      try {
-        const { data: vData, error: vError } = await supabase
-          .from("product_variants_public")
-          .select("*")
-          .eq("product_id", data.id)
-          .order("sort_order", { ascending: true });
-        if (!vError && vData) {
-          dbVariants = vData;
+        // Fetch active variants safely for this specific product (hybrid fallback)
+        try {
+          const { data: vData, error: vError } = await supabase
+            .from("product_variants_public")
+            .select("*")
+            .eq("product_id", dbProduct.id)
+            .order("sort_order", { ascending: true });
+          if (!vError && vData) {
+            dbVariants = vData;
+          }
+        } catch (vErr) {
+          console.error(`Failed to fetch variants for single product ${slug}:`, vErr);
         }
-      } catch (vErr) {
-        console.error(`Failed to fetch variants for single product ${slug}:`, vErr);
       }
-
-      const productVariants = dbVariants.map((v) => ({
-        id: v.id,
-        productId: v.product_id,
-        variantKey: v.variant_key,
-        sizeLabel: v.size_label || undefined,
-        handleLabel: v.handle_label || undefined,
-        styleLabel: v.style_label || undefined,
-        priceCents: v.price_cents,
-        compareAtCents: v.compare_at_cents || undefined,
-        currency: v.currency,
-        active: v.active,
-        sortOrder: v.sort_order,
-      }));
-
-      const baseProduct = {
-        ...fallbackProduct,
-        name: data.name,
-        tagline: data.tagline || fallbackProduct.tagline,
-        price: data.price_cents !== null && data.price_cents !== undefined && data.price_cents !== 0 ? data.price_cents / 100 : fallbackProduct.price,
-        compareAt: data.compare_at_cents ? data.compare_at_cents / 100 : fallbackProduct.compareAt,
-        image: data.image_url || fallbackProduct.image,
-        rating: data.rating ? Number(data.rating) : fallbackProduct.rating,
-        reviewCount: data.review_count !== null && data.review_count !== undefined ? data.review_count : fallbackProduct.reviewCount,
-        shortDescription: data.short_description || fallbackProduct.shortDescription,
-        longDescription: data.long_description || fallbackProduct.longDescription,
-        features: Array.isArray(data.features) && data.features.length > 0 ? data.features : fallbackProduct.features,
-        benefits: Array.isArray(data.benefits) && data.benefits.length > 0 ? data.benefits : fallbackProduct.benefits,
-        useCases: Array.isArray(data.use_cases) && data.use_cases.length > 0 ? data.use_cases : fallbackProduct.useCases,
-        specs: Array.isArray(data.specs) && data.specs.length > 0 ? data.specs : fallbackProduct.specs,
-        faq: Array.isArray(data.faq) && data.faq.length > 0 ? data.faq : fallbackProduct.faq,
-        active: data.active !== null && data.active !== undefined ? data.active : fallbackProduct.active,
-        variants: productVariants.length > 0 ? productVariants : undefined,
-      };
-
-      const dynamicGallery = await getDynamicGallery(baseProduct.slug, baseProduct.image, fallbackProduct.gallery);
-      return {
-        ...baseProduct,
-        gallery: dynamicGallery,
-      };
     } catch (err) {
-      console.error(`Error in getDbProductBySlug server function for ${slug}:`, err);
-      return {
-        ...fallbackProduct,
-        gallery: await getDynamicGallery(fallbackProduct.slug, fallbackProduct.image, fallbackProduct.gallery),
-      };
+      console.warn(`Supabase query failed for single product ${slug}, using local/defaults only`, err);
     }
+
+    // 2. Load local site-products.json if exists
+    let localProducts: Record<string, any> = {};
+    try {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const filePath = path.resolve(process.cwd(), "src/lib/site-products.json");
+      if (fs.existsSync(filePath)) {
+        localProducts = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      }
+    } catch (err) {
+      console.error("Error reading site-products.json:", err);
+    }
+
+    const localProduct = localProducts[slug];
+
+    const productVariants = dbVariants.map((v) => ({
+      id: v.id,
+      productId: v.product_id,
+      variantKey: v.variant_key,
+      sizeLabel: v.size_label || undefined,
+      handleLabel: v.handle_label || undefined,
+      styleLabel: v.style_label || undefined,
+      priceCents: v.price_cents,
+      compareAtCents: v.compare_at_cents || undefined,
+      currency: v.currency,
+      active: v.active,
+      sortOrder: v.sort_order,
+    }));
+
+    const name = localProduct?.name || dbProduct?.name || fallbackProduct.name;
+    const tagline = localProduct?.tagline || dbProduct?.tagline || fallbackProduct.tagline;
+    const price = dbProduct?.price_cents !== null && dbProduct?.price_cents !== undefined && dbProduct?.price_cents !== 0 ? dbProduct.price_cents / 100 : fallbackProduct.price;
+    const compareAt = dbProduct?.compare_at_cents ? dbProduct.compare_at_cents / 100 : fallbackProduct.compareAt;
+    const image = localProduct?.image || dbProduct?.image_url || fallbackProduct.image;
+    const rating = dbProduct?.rating ? Number(dbProduct.rating) : fallbackProduct.rating;
+    const reviewCount = dbProduct?.review_count !== null && dbProduct?.review_count !== undefined ? dbProduct.review_count : fallbackProduct.reviewCount;
+    const shortDescription = localProduct?.shortDescription || dbProduct?.short_description || fallbackProduct.shortDescription;
+    const longDescription = localProduct?.longDescription || dbProduct?.long_description || fallbackProduct.longDescription;
+    const features = (localProduct?.features && localProduct.features.length > 0) ? localProduct.features : (Array.isArray(dbProduct?.features) && dbProduct.features.length > 0 ? dbProduct.features : fallbackProduct.features);
+    const benefits = (localProduct?.benefits && localProduct.benefits.length > 0) ? localProduct.benefits : (Array.isArray(dbProduct?.benefits) && dbProduct.benefits.length > 0 ? dbProduct.benefits : fallbackProduct.benefits);
+    const specs = (localProduct?.specs && localProduct.specs.length > 0) ? localProduct.specs : (Array.isArray(dbProduct?.specs) && dbProduct.specs.length > 0 ? dbProduct.specs : fallbackProduct.specs);
+    const faq = (localProduct?.faq && localProduct.faq.length > 0) ? localProduct.faq : (Array.isArray(dbProduct?.faq) && dbProduct.faq.length > 0 ? dbProduct.faq : fallbackProduct.faq);
+    const active = dbProduct?.active !== null && dbProduct?.active !== undefined ? dbProduct.active : fallbackProduct.active;
+    const video = localProduct?.videoUrl || dbProduct?.video_url || fallbackProduct.video;
+    const galleryUrls = localProduct?.galleryUrls || dbProduct?.gallery_urls || undefined;
+    const availability = localProduct?.availability || dbProduct?.availability || undefined;
+
+    const baseProduct = {
+      ...fallbackProduct,
+      name,
+      tagline,
+      price,
+      compareAt,
+      image,
+      rating,
+      reviewCount,
+      shortDescription,
+      longDescription,
+      features,
+      benefits,
+      specs,
+      faq,
+      active,
+      variants: productVariants.length > 0 ? productVariants : undefined,
+      video,
+      video_url: video,
+      gallery_urls: galleryUrls,
+      availability,
+    };
+
+    const dbGallery = galleryUrls || (dbProduct && Array.isArray(dbProduct.gallery_urls) && dbProduct.gallery_urls.length > 0 ? dbProduct.gallery_urls : null);
+    const dynamicGallery = dbGallery || await getDynamicGallery(baseProduct.slug, baseProduct.image, fallbackProduct.gallery);
+    
+    return {
+      ...baseProduct,
+      gallery: dynamicGallery,
+    };
   });
 
 // Server function for admin loading (returns raw product rows)
 export const getAdminDbProducts = createServerFn({ method: "GET" })
   .handler(async () => {
+    let dbProductsData: any[] = [];
     try {
       const { createSupabaseServerClient } = await import("./supabase.server");
       const supabase = createSupabaseServerClient();
       const { data, error } = await supabase
         .from("products")
         .select("*");
-      if (error) throw error;
-      return data;
+      if (!error && data) {
+        dbProductsData = data;
+      }
     } catch (err) {
-      console.error("Error in getAdminDbProducts server function:", err);
-      throw err;
+      console.warn("Failed to fetch products from Supabase, using defaults for admin", err);
     }
+
+    // Load local site-products.json
+    let localProducts: Record<string, any> = {};
+    try {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const filePath = path.resolve(process.cwd(), "src/lib/site-products.json");
+      if (fs.existsSync(filePath)) {
+        localProducts = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      }
+    } catch (err) {
+      console.error("Error reading site-products.json for admin", err);
+    }
+
+    return products.map((fallback) => {
+      const dbProd = dbProductsData.find((p) => p.slug === fallback.slug);
+      const localProd = localProducts[fallback.slug];
+
+      return {
+        id: dbProd?.id || fallback.slug,
+        slug: fallback.slug,
+        name: localProd?.name || dbProd?.name || fallback.name,
+        tagline: localProd?.tagline || dbProd?.tagline || fallback.tagline,
+        price_cents: dbProd?.price_cents || Math.round(fallback.price * 100),
+        compare_at_cents: dbProd?.compare_at_cents || (fallback.compareAt ? Math.round(fallback.compareAt * 100) : null),
+        image_url: localProd?.image || dbProd?.image_url || fallback.image,
+        rating: dbProd?.rating !== undefined ? dbProd.rating : fallback.rating,
+        review_count: dbProd?.review_count !== undefined ? dbProd.review_count : fallback.reviewCount,
+        short_description: localProd?.shortDescription || dbProd?.short_description || fallback.shortDescription,
+        long_description: localProd?.longDescription || dbProd?.long_description || fallback.longDescription,
+        features: (localProd?.features && localProd.features.length > 0) ? localProd.features : (dbProd?.features || fallback.features || []),
+        benefits: (localProd?.benefits && localProd.benefits.length > 0) ? localProd.benefits : (dbProd?.benefits || fallback.benefits || []),
+        specs: (localProd?.specs && localProd.specs.length > 0) ? localProd.specs : (dbProd?.specs || fallback.specs || []),
+        faq: (localProd?.faq && localProd.faq.length > 0) ? localProd.faq : (dbProd?.faq || fallback.faq || []),
+        active: dbProd?.active !== undefined ? dbProd.active : (fallback.active !== false),
+        video_url: localProd?.videoUrl || dbProd?.video_url || fallback.video,
+        gallery_urls: localProd?.galleryUrls || dbProd?.gallery_urls || fallback.gallery,
+        availability: localProd?.availability || dbProd?.availability || (fallback.active !== false ? "Available" : "Coming Soon"),
+      };
+    });
   });
+

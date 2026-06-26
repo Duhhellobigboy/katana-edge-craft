@@ -28,7 +28,6 @@ import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhoo
 import { Route as ApiCreateCheckoutSessionRouteImport } from './routes/api/create-checkout-session'
 import { Route as ApiCheckoutSessionRouteImport } from './routes/api/checkout-session'
 import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
-import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminProductsRouteImport } from './routes/api/admin/products'
 import { Route as ApiAdminLogoutRouteImport } from './routes/api/admin/logout'
 import { Route as ApiAdminLoginRouteImport } from './routes/api/admin/login'
@@ -131,11 +130,6 @@ const ApiWebhooksStripeRoute = ApiWebhooksStripeRouteImport.update({
   path: '/api/webhooks/stripe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminTestimonialsRoute = ApiAdminTestimonialsRouteImport.update({
-  id: '/api/admin/testimonials',
-  path: '/api/admin/testimonials',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiAdminProductsRoute = ApiAdminProductsRouteImport.update({
   id: '/api/admin/products',
   path: '/api/admin/products',
@@ -186,7 +180,6 @@ export interface FileRoutesByFullPath {
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/admin/products': typeof ApiAdminProductsRoute
-  '/api/admin/testimonials': typeof ApiAdminTestimonialsRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
 }
 export interface FileRoutesByTo {
@@ -213,7 +206,6 @@ export interface FileRoutesByTo {
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/admin/products': typeof ApiAdminProductsRoute
-  '/api/admin/testimonials': typeof ApiAdminTestimonialsRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
 }
 export interface FileRoutesById {
@@ -241,7 +233,6 @@ export interface FileRoutesById {
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/admin/products': typeof ApiAdminProductsRoute
-  '/api/admin/testimonials': typeof ApiAdminTestimonialsRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
 }
 export interface FileRouteTypes {
@@ -270,7 +261,6 @@ export interface FileRouteTypes {
     | '/api/admin/login'
     | '/api/admin/logout'
     | '/api/admin/products'
-    | '/api/admin/testimonials'
     | '/api/webhooks/stripe'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -297,7 +287,6 @@ export interface FileRouteTypes {
     | '/api/admin/login'
     | '/api/admin/logout'
     | '/api/admin/products'
-    | '/api/admin/testimonials'
     | '/api/webhooks/stripe'
   id:
     | '__root__'
@@ -324,7 +313,6 @@ export interface FileRouteTypes {
     | '/api/admin/login'
     | '/api/admin/logout'
     | '/api/admin/products'
-    | '/api/admin/testimonials'
     | '/api/webhooks/stripe'
   fileRoutesById: FileRoutesById
 }
@@ -351,7 +339,6 @@ export interface RootRouteChildren {
   ApiAdminLoginRoute: typeof ApiAdminLoginRoute
   ApiAdminLogoutRoute: typeof ApiAdminLogoutRoute
   ApiAdminProductsRoute: typeof ApiAdminProductsRoute
-  ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRoute
   ApiWebhooksStripeRoute: typeof ApiWebhooksStripeRoute
 }
 
@@ -490,13 +477,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWebhooksStripeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/testimonials': {
-      id: '/api/admin/testimonials'
-      path: '/api/admin/testimonials'
-      fullPath: '/api/admin/testimonials'
-      preLoaderRoute: typeof ApiAdminTestimonialsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/admin/products': {
       id: '/api/admin/products'
       path: '/api/admin/products'
@@ -570,7 +550,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminLoginRoute: ApiAdminLoginRoute,
   ApiAdminLogoutRoute: ApiAdminLogoutRoute,
   ApiAdminProductsRoute: ApiAdminProductsRoute,
-  ApiAdminTestimonialsRoute: ApiAdminTestimonialsRoute,
   ApiWebhooksStripeRoute: ApiWebhooksStripeRoute,
 }
 export const routeTree = rootRouteImport

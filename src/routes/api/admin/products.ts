@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { checkAdminSession } from "@/lib/admin.server";
 import { createSupabaseServerClient } from "@/lib/supabase.server";
+import fs from "fs";
+import path from "path";
 
 // Define strict validation schema for incoming product copy updates
 const productUpdateSchema = z.object({
@@ -44,6 +46,9 @@ const productUpdateSchema = z.object({
       a: z.string(),
     })
   ),
+  videoUrl: z.string().url("Must be a valid video URL").or(z.string().regex(/^\//)).or(z.string().default("")),
+  galleryUrls: z.array(z.string()).default([]),
+  availability: z.enum(["Available", "Coming Soon"]).default("Coming Soon"),
 });
 
 export const Route = createFileRoute("/api/admin/products")({
@@ -90,36 +95,72 @@ export const Route = createFileRoute("/api/admin/products")({
             benefits,
             specs,
             faq,
+            videoUrl,
+            galleryUrls,
+            availability,
           } = result.data;
 
-          const supabase = createSupabaseServerClient();
-
-          // Save copywriting updates only. Never allow updating Stripe IDs, price_cents, or active status.
-          const { error } = await supabase
-            .from("products")
-            .update({
+          // 1. Write changes locally to the JSON file for local-first persistence
+          try {
+            const filePath = path.resolve(process.cwd(), "src/lib/site-products.json");
+            let localProducts: Record<string, any> = {};
+            if (fs.existsSync(filePath)) {
+              localProducts = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+            }
+            localProducts[slug] = {
               name,
               tagline,
-              short_description: shortDescription,
-              long_description: longDescription,
-              image_url: image,
+              shortDescription,
+              longDescription,
+              image,
               features,
               benefits,
               specs,
               faq,
+              videoUrl,
+              galleryUrls,
+              availability,
               updated_at: new Date().toISOString(),
-            })
-            .eq("slug", slug);
+            };
+            fs.writeFileSync(filePath, JSON.stringify(localProducts, null, 2), "utf-8");
+          } catch (fileErr) {
+            console.error("Failed to write local site-products.json", fileErr);
+          }
 
-          if (error) {
-            console.error("Supabase product copy update failed", error);
-            throw new Error(error.message);
+          // 2. Optionally write to Supabase (catch errors so missing columns/tables do not block local saves)
+          try {
+            const supabase = createSupabaseServerClient();
+            const { error } = await supabase
+              .from("products")
+              .update({
+                name,
+                tagline,
+                short_description: shortDescription,
+                long_description: longDescription,
+                image_url: image,
+                features,
+                benefits,
+                specs,
+                faq,
+                video_url: videoUrl,
+                gallery_urls: galleryUrls,
+                availability,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("slug", slug);
+
+            if (error) {
+              console.warn("Supabase product copy update returned an error", error);
+            }
+          } catch (dbErr) {
+            console.warn("Supabase product copy update skipped/failed", dbErr);
           }
 
           return new Response(JSON.stringify({ success: true }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
+
         } catch (error: any) {
           return new Response(
             JSON.stringify({ error: error.message || "Failed to update product copy details." }),

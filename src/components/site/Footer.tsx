@@ -1,7 +1,28 @@
 import { Link } from "@tanstack/react-router";
 import { Phone, Mail, Instagram } from "lucide-react";
 
+import { useEffect, useState } from "react";
+import { fetchSiteContent } from "@/lib/content";
+
 export function Footer() {
+  const [email, setEmail] = useState("hello@katanaedge.com");
+  const [phone, setPhone] = useState("+1 (316) 368-2814");
+
+  useEffect(() => {
+    fetchSiteContent().then((content) => {
+      if (content["contact.support.email"]) {
+        setEmail(content["contact.support.email"]);
+      }
+      if (content["contact.support.phone"]) {
+        setPhone(content["contact.support.phone"]);
+      }
+    }).catch((err) => {
+      console.error("Failed to load footer site content", err);
+    });
+  }, []);
+
+  const phoneLink = phone.replace(/[^\d+]/g, "");
+
   return (
     <footer className="mt-32 border-t border-border bg-card">
       <div className="container-luxe py-20 grid grid-cols-2 md:grid-cols-4 gap-10">
@@ -19,7 +40,7 @@ export function Footer() {
           <ul className="space-y-2.5 text-sm text-muted-foreground">
             <li><Link to="/products/$slug" params={{ slug: "fujisan-thinning-shears" }} className="hover:text-gold transition">Fujisan</Link></li>
             <li><Link to="/products/$slug" params={{ slug: "micro-slit-shears" }} className="hover:text-gold transition">Micro Slit</Link></li>
-            <li><Link to="/shop" className="hover:text-gold transition">All Scissors</Link></li>
+            <li><Link to="/products" className="hover:text-gold transition">All Scissors</Link></li>
           </ul>
         </div>
 
@@ -38,13 +59,13 @@ export function Footer() {
           <h4 className="eyebrow mb-4">Contact</h4>
           <ul className="space-y-2.5 text-sm text-muted-foreground">
             <li>
-              <a href="tel:+13163682814" className="hover:text-gold transition inline-flex items-center gap-2">
-                <Phone className="size-3.5" /> +1 (316) 368-2814
+              <a href={`tel:${phoneLink}`} className="hover:text-gold transition inline-flex items-center gap-2">
+                <Phone className="size-3.5" /> {phone}
               </a>
             </li>
             <li>
-              <a href="mailto:hello@katanaedge.com" className="hover:text-gold transition inline-flex items-center gap-2">
-                <Mail className="size-3.5" /> hello@katanaedge.com
+              <a href={`mailto:${email}`} className="hover:text-gold transition inline-flex items-center gap-2">
+                <Mail className="size-3.5" /> {email}
               </a>
             </li>
             <li>

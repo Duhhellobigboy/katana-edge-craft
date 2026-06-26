@@ -32,24 +32,24 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function dumpVariants() {
-  console.log("Checking schema of product_variants_public...");
+  console.log("Checking schema of product_variants...");
   const { data: colsData, error: colsError } = await supabase
-    .from("product_variants_public")
+    .from("product_variants")
     .select("*")
     .limit(1);
   if (colsError) {
-    console.error("Error querying product_variants_public:", colsError);
+    console.error("Error querying product_variants:", colsError);
   } else if (colsData && colsData.length > 0) {
-    console.log("product_variants_public columns:", Object.keys(colsData[0]));
+    console.log("product_variants columns:", Object.keys(colsData[0]));
   }
 
-  console.log("\nQuerying product_variants_public...");
+  console.log("\nQuerying product_variants...");
   const { data, error } = await supabase
-    .from("product_variants_public")
+    .from("product_variants")
     .select("*");
 
   if (error) {
-    console.error("Error querying product_variants_public:", error);
+    console.error("Error querying product_variants:", error);
   } else {
     console.log(`Found ${data.length} variants in database:`);
     data.forEach(v => {

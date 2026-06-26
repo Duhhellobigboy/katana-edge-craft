@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Shield, Sparkles, Hand, Award, Hammer, Users, Star, Lock, Globe, RotateCcw } from "lucide-react";
-import { CircularTestimonials } from "@/components/ui/circular-testimonials";
+import { ArrowRight, Check, Shield, Sparkles, Hand, Award, Hammer, Users, Star, Quote, Lock, Globe, RotateCcw } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
 import { LeadForm } from "@/components/site/LeadForm";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -10,10 +9,7 @@ import heroCustomImg from "@/assets/hero-custom.jpg";
 import logoImg from "@/assets/logo.jpg";
 import craftImg from "@/assets/craft-steel.jpg";
 import shopImg from "@/assets/barbershop.jpg";
-import testimonialProfessional1 from "@/assets/testimonials/professional-1.png";
-import testimonialProfessional2 from "@/assets/testimonials/professional-2.png";
-import testimonialProfessional3 from "@/assets/testimonials/professional-3.jpg";
-import { fetchSiteContent } from "@/lib/content";
+import { fetchSiteContent, fetchFaqs } from "@/lib/content";
 import { getAllDbProducts } from "@/lib/products";
 
 export const Route = createFileRoute("/")({
@@ -30,7 +26,8 @@ export const Route = createFileRoute("/")({
   loader: async () => {
     const content = await fetchSiteContent();
     const dbProducts = await getAllDbProducts();
-    return { content, products: dbProducts };
+    const dbFaqs = await fetchFaqs();
+    return { content, products: dbProducts, faqs: dbFaqs };
   },
   component: HomePage,
 });
@@ -51,39 +48,6 @@ const whyItems = [
   { icon: Users, title: "Trusted Worldwide", body: "Chosen by stylists and barbers across more than 40 countries." },
 ];
 
-const testimonials = [
-  {
-    quote:
-      "Katana Edge shears are exceptional. Reliable, professional, always on time, and incredibly sharp. I wouldn't buy from anyone else.",
-    name: "Jetti, Paula V Salon",
-    designation: "Salon Owner · Sacramento",
-    src: testimonialProfessional1,
-  },
-  {
-    quote:
-      "I love my new Katana Edge shears. They cut like butter and deliver incredible performance every single day.",
-    name: "Aiko Tanaka",
-    designation: "Beau Monde Academy · Portland",
-    src: testimonialProfessional2,
-  },
-  {
-    quote:
-      "Micro Slit shears are incredibly comfortable and precise—easily the best I’ve used. Outstanding quality and design. I’ll definitely buy again.",
-    name: "Maureen Enciso",
-    designation: "Stylist Boutique Owner · Seattle",
-    src: testimonialProfessional3,
-  },
-];
-
-const faqs = [
-  { q: "What makes Katana Edge scissors different?", a: "Every Katana Edge shear is forged from premium Japanese-grade steel, hand-honed to a convex edge, and finished to professional tolerances — the same standards used by master craftsmen for generations." },
-  { q: "Are these suitable for beginners?", a: "Yes. The precision engineering actually accelerates skill development — beginners learn correct hand position faster with a properly balanced, properly tensioned shear." },
-  { q: "How often should I sharpen them?", a: "For full-time professional use, every 6–9 months. We offer lifetime sharpening for all Katana Edge owners — ship it in, we honor it free for life." },
-  { q: "What is the return policy?", a: "60-day no-questions-asked return on any unused shear. If you've used it and it isn't right, we'll exchange it or sharpen it on the house." },
-  { q: "Do professional stylists use thinning scissors?", a: "Absolutely. Thinning shears (like the Fujisan) are essential for weight removal, texture work, and creating soft, invisible transitions between sections." },
-  { q: "What is Micro Slit used for?", a: "Micro Slit is designed for stable, precise dry and wet hair cutting. Its patent-protected microscopic slits help keep dry hair stable while cutting for clean, controlled results." },
-];
-
 function formatHeroTitle(title: string) {
   const parts = title.split(/(\bcut\b)/i);
   return parts.map((part, i) => {
@@ -102,7 +66,14 @@ function formatHeroTitle(title: string) {
 }
 
 function HomePage() {
-  const { content, products } = Route.useLoaderData();
+  const { content, products, faqs: dbFaqs } = Route.useLoaderData();
+  
+  const testimonials = [
+    { name: "Marcus Vega", role: "Master Barber · Brooklyn", body: "The Fujisan is the cleanest blending shear I've ever picked up. My fades drop into place in a single pass — I'm saving five minutes per client.", rating: 5 },
+    { name: "Aiko Tanaka", role: "Stylist · Tokyo", body: "Micro Slit changed my dry-cut work. The grip on the strand is unreal — no slip, no re-cut. Like working with a scalpel.", rating: 5 },
+    { name: "Devon Hill", role: "Salon Owner · Chicago", body: "We outfitted our entire team with Katana Edge. Six months in — still hand-honed sharp. Worth every dollar.", rating: 5 },
+    { name: "Sofia Marín", role: "Stylist Educator · Madrid", body: "I teach with these. The balance and tension dial alone make them perfect for apprentices learning correct hand position.", rating: 5 },
+  ];
   return (
     <Layout>
       {/* HERO */}
@@ -279,7 +250,7 @@ function HomePage() {
               The Art Behind Every Cut
             </h2>
             <p className="mt-6 text-base text-muted-foreground leading-relaxed">
-              We believe a shear should feel like an extension of the hand. Inspired by the traditions of Japanese blade makers, every Katana Edge shear is shaped for precision, balance, and lasting performance.
+              {content["home.brand.statement"] || content["about.brand.statement"] || "We believe a shear should feel like an extension of the hand. Inspired by the traditions of Japanese blade makers, every Katana Edge shear is shaped for precision, balance, and lasting performance."}
             </p>
 
             <div className="mt-12 space-y-8">
@@ -333,29 +304,24 @@ function HomePage() {
         <div className="container-luxe">
           <div className="text-center mb-16">
             <p className="eyebrow">Trusted By Professionals</p>
-            <h2 className="font-display text-4xl md:text-6xl mt-4">Trusted By Professionals</h2>
+            <h2 className="font-display text-4xl md:text-6xl mt-4">What the chair says</h2>
           </div>
-          <div
-            className="relative mx-auto flex items-center justify-center"
-            style={{ maxWidth: "1024px" }}
-          >
-            <CircularTestimonials
-              testimonials={testimonials}
-              autoplay={true}
-              colors={{
-                name: "#f7f7ff",
-                designation: "#e1e1e1",
-                testimony: "#f1f1f7",
-                arrowBackground: "#D8C7A1",
-                arrowForeground: "#0B0B0B",
-                arrowHoverBackground: "#f7f7ff",
-              }}
-              fontSizes={{
-                name: "28px",
-                designation: "20px",
-                quote: "20px",
-              }}
-            />
+          <div className="grid md:grid-cols-2 gap-6">
+            {testimonials.map((t) => (
+              <figure key={t.name} className="luxe-card p-8 md:p-10 relative">
+                <Quote className="absolute top-6 right-6 size-8 text-gold/20" />
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} className="size-4 fill-gold text-gold" />
+                  ))}
+                </div>
+                <blockquote className="font-display text-xl md:text-2xl leading-snug">"{t.body}"</blockquote>
+                <figcaption className="mt-6 pt-6 border-t border-border">
+                  <p className="font-medium">{t.name}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-[0.18em] mt-1">{t.role}</p>
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>
@@ -371,13 +337,13 @@ function HomePage() {
           </div>
 
           <div className="divide-y divide-border border-y border-border">
-            {faqs.map((f) => (
-              <details key={f.q} className="group py-6">
+            {dbFaqs.map((f: any) => (
+              <details key={f.question} className="group py-6">
                 <summary className="flex justify-between items-center cursor-pointer list-none gap-6">
-                  <h3 className="font-display text-xl md:text-2xl group-open:text-gold transition-colors">{f.q}</h3>
+                  <h3 className="font-display text-xl md:text-2xl group-open:text-gold transition-colors">{f.question}</h3>
                   <span className="text-gold text-2xl group-open:rotate-45 transition-transform shrink-0">+</span>
                 </summary>
-                <p className="mt-4 text-muted-foreground leading-relaxed max-w-3xl">{f.a}</p>
+                <p className="mt-4 text-muted-foreground leading-relaxed max-w-3xl">{f.answer}</p>
               </details>
             ))}
           </div>

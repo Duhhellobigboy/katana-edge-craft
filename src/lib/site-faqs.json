@@ -1,0 +1,73 @@
+[
+  {
+    "id": "f49b05b7-484f-4afa-b636-eae81d844a54",
+    "question": "What makes Katana Edge scissors different?",
+    "answer": "Every Katana Edge shear is forged from premium Japanese-grade steel, hand-honed to a convex edge, and finished to professional tolerances. We make tools, not products.",
+    "sort_order": 1,
+    "is_active": true,
+    "updated_at": "2026-06-26T00:12:48.027Z"
+  },
+  {
+    "id": "e079f949-65e3-4f89-b397-6c1775e92077",
+    "question": "Are these suitable for beginners?",
+    "answer": "Yes. Properly balanced, properly tensioned shears actually accelerate skill development. Beginners learn correct hand position faster on professional-grade tools.",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": "b43303bf-822d-4682-8c90-c5eae522e363",
+    "question": "How often should I sharpen them?",
+    "answer": "For full-time professional use, every 6–9 months. We offer free lifetime sharpening for all Katana Edge owners — ship it in, we honor it for life.",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": "111f16ea-84d3-4089-9b34-6dfe77d67154",
+    "question": "What is the return policy?",
+    "answer": "60-day satisfaction guarantee. Use it. If it isn't right, return it for a full refund — no questions asked.",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": "f240fece-37e5-4581-99f6-1f69e2ab2a91",
+    "question": "Do professional stylists use thinning scissors?",
+    "answer": "Absolutely. Thinning shears (like the Fujisan) are essential for fade blending, weight removal, and creating soft, invisible transitions between sections.",
+    "sort_order": 5,
+    "is_active": true
+  },
+  {
+    "id": "eb7b045d-461a-41e7-9c79-9899f3ee1173",
+    "question": "What is Micro Slit used for?",
+    "answer": "Micro Slit is designed for stable, precise dry and wet hair cutting. Its patent-protected microscopic slits help keep dry hair stable while cutting for clean, controlled results.",
+    "sort_order": 6,
+    "is_active": true
+  },
+  {
+    "id": "382a5d2c-2626-471d-a043-f56eea30d47c",
+    "question": "Do you ship internationally?",
+    "answer": "Yes. We ship to 40+ countries with full tracking. Duties and taxes vary by destination.",
+    "sort_order": 7,
+    "is_active": true
+  },
+  {
+    "id": "3de524cf-0700-4d4f-a41a-62dad844b5dc",
+    "question": "How long does shipping take?",
+    "answer": "US: 2–5 business days. International: 5–10 business days. All orders ship within 48 hours.",
+    "sort_order": 8,
+    "is_active": true
+  },
+  {
+    "id": "bfcc2e95-3d02-4d29-b68d-d4f292000749",
+    "question": "What's the warranty?",
+    "answer": "Lifetime structural warranty plus free lifetime sharpening. If the shear ever fails under professional use, we replace it.",
+    "sort_order": 9,
+    "is_active": true
+  },
+  {
+    "id": "57b8914c-ab64-494a-be99-7988c3874298",
+    "question": "Can I buy in bulk for my salon?",
+    "answer": "Yes. Contact us at hello@katanaedge.com for professional and salon volume pricing.",
+    "sort_order": 10,
+    "is_active": true
+  }
+]
