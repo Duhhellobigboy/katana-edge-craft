@@ -25,6 +25,8 @@ export const Route = createFileRoute("/contact")({
 function ContactPage() {
   const { content } = Route.useLoaderData();
   const supportEmail = content["contact.support.email"] || "hello@katanaedge.com";
+  const supportPhone = content["contact.support.phone"] || "+1 (316) 368-2814";
+  const supportPhoneLink = supportPhone.replace(/[^\d+]/g, "");
 
   return (
     <Layout>
@@ -39,11 +41,11 @@ function ContactPage() {
           </p>
         </div>
       </section>
-
+ 
       <section className="py-20 md:py-28">
         <div className="container-luxe grid md:grid-cols-3 gap-px bg-border max-w-5xl mx-auto border border-border">
           {[
-            { i: Phone, t: "Call us", l: "+1 (316) 368-2814", h: "tel:+13163682814", s: "Mon–Fri · 9am–6pm CT" },
+            { i: Phone, t: "Call us", l: supportPhone, h: `tel:${supportPhoneLink}`, s: "Mon–Fri · 9am–6pm CT" },
             { i: Mail, t: "Email us", l: supportEmail, h: `mailto:${supportEmail}`, s: "Replies within 24 hours" },
             { i: MessageCircle, t: "Live chat", l: "Open chat widget", h: "#", s: "AI concierge · 24/7" },
           ].map((c) => (

@@ -17,24 +17,42 @@ const navLinks: NavLink[] = [
   { to: "/contact", label: "Contact" },
 ];
 
-const tickerMessages = [
-  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-white" },
-  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-gold" },
-  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-white" },
-  { text: "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE", color: "text-gold" },
-];
+import { fetchSiteContent } from "@/lib/content";
+
+const defaultTicker = "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { cartCount, cartOpen, setCartOpen } = useCart();
+  const [tickerText, setTickerText] = useState(defaultTicker);
+  const [saleBanner, setSaleBanner] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    fetchSiteContent().then((content) => {
+      if (content["home.announcement.text"]) {
+        setTickerText(content["home.announcement.text"]);
+      }
+      if (content["home.sale_banner.text"]) {
+        setSaleBanner(content["home.sale_banner.text"]);
+      }
+    }).catch((err) => {
+      console.error("Failed to load header content", err);
+    });
+
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const tickerMessages = [
+    { text: tickerText, color: "text-white" },
+    { text: tickerText, color: "text-gold" },
+    { text: tickerText, color: "text-white" },
+    { text: tickerText, color: "text-gold" },
+  ];
 
   return (
     <header
@@ -44,6 +62,13 @@ export function Header() {
           : "bg-transparent"
       }`}
     >
+      {/* SALE BANNER */}
+      {saleBanner && (
+        <div className="bg-gold text-black text-center py-2 text-[10px] md:text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+          <span>{saleBanner}</span>
+        </div>
+      )}
+
       {/* TOP TICKER BAR */}
       <div className="bg-[#000000] overflow-hidden py-2.5 border-b border-white/5">
         <div className="flex gap-16 animate-marquee whitespace-nowrap">

@@ -228,9 +228,11 @@ function ProductPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const canPurchase = product.active !== false;
+
   const handleAddToCart = (quantity: number) => {
-    if (product.active === false) {
-      toast.error("This product is Coming Soon and cannot be purchased.");
+    if (!canPurchase) {
+      toast.error("This product is Coming Soon or unavailable for purchase.");
       return;
     }
 
@@ -488,7 +490,7 @@ function ProductPage() {
               </div>
             )}
 
-            {product.active === false ? (
+            {!canPurchase ? (
               <div className="mt-8">
                 <button
                   type="button"
@@ -644,7 +646,7 @@ function ProductPage() {
         </div>
       </section>
 
-      {showSticky && product.active !== false && (
+      {showSticky && canPurchase && (
         <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border animate-fade-up">
           <div className="container-luxe py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">

@@ -32,21 +32,48 @@ function CalendlyFallback() {
   );
 }
 
+import { fetchSiteContent } from "@/lib/content";
+
 export function CalendlyEmbed() {
   const widgetRef = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
-
-  const calendlyUrlWithParams = getCalendlyEmbedUrl();
+  const [calendlyUrlWithParams, setCalendlyUrlWithParams] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    fetchSiteContent().then((content) => {
+      if (!active) return;
+      const dbUrl = content["contact.calendly.url"];
+      const url = getCalendlyEmbedUrl(dbUrl || null);
+      if (url) {
+        setCalendlyUrlWithParams(url);
+      } else {
+        console.error("[calendly-env] Missing or invalid VITE_CALENDLY_URL or contact.calendly.url.");
+        setFailed(true);
+      }
+      setLoading(false);
+    }).catch((err) => {
+      if (!active) return;
+      console.error("[calendly-env] Failed to load site content for Calendly", err);
+      const url = getCalendlyEmbedUrl();
+      if (url) {
+        setCalendlyUrlWithParams(url);
+      } else {
+        setFailed(true);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (loading || failed || !calendlyUrlWithParams) return;
+
     logCalendlyEnvDebug();
-
-    if (!calendlyUrlWithParams) {
-      console.error("[calendly-env] Missing or invalid VITE_CALENDLY_URL.");
-      setFailed(true);
-      return;
-    }
-
     let active = true;
 
     loadCalendlyAssets()
@@ -71,7 +98,11 @@ export function CalendlyEmbed() {
     return () => {
       active = false;
     };
-  }, [calendlyUrlWithParams]);
+  }, [calendlyUrlWithParams, loading, failed]);
+
+  if (loading) {
+    return <div className="text-center py-10 text-muted-foreground">Loading calendar...</div>;
+  }
 
   if (failed || !calendlyUrlWithParams) {
     return <CalendlyFallback />;

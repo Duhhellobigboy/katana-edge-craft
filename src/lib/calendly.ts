@@ -51,8 +51,8 @@ export function getBrandColors() {
 }
 
 /** Calendly embed URL with brand query params (no # in param values). */
-export function getCalendlyEmbedUrl(): string | null {
-  const base = getCalendlyUrl();
+export function getCalendlyEmbedUrl(customBase?: string | null): string | null {
+  const base = customBase || getCalendlyUrl();
   if (!base) return null;
 
   const brand = getBrandColors();

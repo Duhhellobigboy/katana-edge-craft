@@ -183,11 +183,37 @@ export function ensureServerEnv() {
 export function getSiteUrl(): string {
   ensureServerEnv();
 
-  const fromProcess = getEnvVar("VITE_SITE_URL");
-  if (fromProcess) return fromProcess.replace(/\/$/, "");
+  // Try VITE_SITE_URL
+  let url = getEnvVar("VITE_SITE_URL");
 
-  const fromImport = sanitizeEnvValue(import.meta.env.VITE_SITE_URL);
-  if (fromImport) return fromImport.replace(/\/$/, "");
+  // Try NEXT_PUBLIC_SITE_URL (fallback since user configured this in Vercel/.env)
+  if (!url) {
+    url = getEnvVar("NEXT_PUBLIC_SITE_URL");
+  }
+
+  // Try Vercel system-defined URL
+  if (!url && process.env.VERCEL_URL) {
+    url = `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Try import.meta.env.VITE_SITE_URL
+  if (!url) {
+    const fromImport = typeof import.meta !== "undefined" && import.meta.env
+      ? (import.meta.env.VITE_SITE_URL as string | undefined)
+      : undefined;
+    url = sanitizeEnvValue(fromImport);
+  }
+
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      // We only want the origin (e.g. "https://katana-edge-craft-o6n3.vercel.app")
+      // to avoid breaking sub-routes like /success when a sub-page path is appended (e.g. /products)
+      return parsed.origin;
+    } catch {
+      return url.replace(/\/+$/, "");
+    }
+  }
 
   return "http://localhost:8080";
 }

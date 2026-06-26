@@ -110,8 +110,28 @@ export const Route = createFileRoute("/api/create-checkout-session")({
               let stripePriceId = "";
               let parentName = "";
               let stripeProductId = "";
+              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
 
-              // 1. Resolve variant details from Supabase if possible (timeout after 2s)
+              // 1. Resolve Stripe Price ID from environment variables first (Source of Truth)
+              const PRODUCT_ENV_VAR_MAPPING: Record<string, string> = {
+                microslit: "STRIPE_MICROSLIT_PRICE_ID",
+                fujisan: "STRIPE_FUJISAN_PRICE_ID",
+                thunder: "STRIPE_THUNDER_PRICE_ID",
+                double_swivel: "STRIPE_DOUBLE_SWIVEL_PRICE_ID",
+                naruto: "STRIPE_NARUTO_PRICE_ID",
+                karakuri: "STRIPE_KARAKURI_PRICE_ID",
+                bamboo: "STRIPE_BAMBOO_PRICE_ID",
+                bamboo_thinning: "STRIPE_BAMBOO_THINNING_PRICE_ID",
+              };
+
+              const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey] || "";
+              const envPriceId = envVarName ? process.env[envVarName] : undefined;
+
+              if (envPriceId) {
+                stripePriceId = envPriceId;
+              }
+
+              // 2. Resolve variant details from Supabase if possible (timeout after 2s)
               const isLegacyKey = item.variantKey === "microslit" || item.variantKey === "fujisan";
               
               if (item.variantKey) {
@@ -157,15 +177,45 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                     }
 
                     stripeProductId = variant.stripe_product_id || "";
+                    if (!stripePriceId) {
+                      stripePriceId = variant.stripe_price_id || "";
+                    }
                     parentName = parent.name;
+                  } else {
+                    // Try looking up the product itself
+                    const dbLookupProduct = async () => {
+                      const { data: dbProduct, error: pError } = await supabase
+                        .from("products")
+                        .select("stripe_price_id, stripe_product_id, name, active")
+                        .eq("product_key", prodKey)
+                        .maybeSingle();
+                      if (pError) throw new Error(pError.message);
+                      return dbProduct;
+                    };
+                    const dbProduct = await Promise.race([
+                      dbLookupProduct(),
+                      new Promise<null>((_, reject) =>
+                        setTimeout(() => reject(new Error("Database product lookup timed out")), 2000)
+                      )
+                    ]).catch(() => null);
+
+                    if (dbProduct) {
+                      if (!dbProduct.active) {
+                        throw new Error(`Product ${prodKey} is inactive.`);
+                      }
+                      if (!stripePriceId) {
+                        stripePriceId = dbProduct.stripe_price_id || "";
+                      }
+                      stripeProductId = dbProduct.stripe_product_id || "";
+                      parentName = dbProduct.name;
+                    }
                   }
                 } catch (dbErr: any) {
                   logTiming("supabase_variant_lookup_fallback", Date.now() - dbStartTime, item.productKey, undefined, dbErr.message);
                 }
               }
 
-              // 2. Resolve fallback parentName and stripeProductId from codebase configuration if database lookup was skipped or failed
-              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
+              // 3. Resolve fallback parentName and stripeProductId from codebase configuration if database lookup was skipped or failed
               const isProductKeyValid = isCheckoutProductKey(prodKey);
               if (!parentName && (isLegacyKey || isProductKeyValid)) {
                 const fallbackProduct = resolveCheckoutProduct(isProductKeyValid ? (prodKey as any) : "microslit");
@@ -176,25 +226,11 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                 parentName = prodKey.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
               }
 
-              // 3. Resolve the Stripe Price ID strictly from the environment variables for all 8 products
-              const PRODUCT_ENV_VAR_MAPPING: Record<string, string> = {
-                microslit: "STRIPE_MICROSLIT_PRICE_ID",
-                fujisan: "STRIPE_FUJISAN_PRICE_ID",
-                thunder: "STRIPE_THUNDER_PRICE_ID",
-                double_swivel: "STRIPE_DOUBLE_SWIVEL_PRICE_ID",
-                naruto: "STRIPE_NARUTO_PRICE_ID",
-                karakuri: "STRIPE_KARAKURI_PRICE_ID",
-                bamboo: "STRIPE_BAMBOO_PRICE_ID",
-                bamboo_thinning: "STRIPE_BAMBOO_THINNING_PRICE_ID",
-              };
-
-              const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey] || "";
-              const envPriceId = envVarName ? process.env[envVarName] : undefined;
-
-              if (!envPriceId) {
-                throw new Error(`Unable to resolve Stripe Price ID: missing environment variable ${envVarName} for product ${prodKey}`);
+              // 4. Absolute fallback if still empty
+              if (!stripePriceId) {
+                console.warn(`[Checkout] Missing Stripe Price ID for ${prodKey}. Using default sandbox fallback.`);
+                stripePriceId = process.env.STRIPE_MICROSLIT_PRICE_ID || "price_1TkKMEEPlkX6ZtPCfhVwYwXK";
               }
-              stripePriceId = envPriceId;
 
               return {
                 price: stripePriceId,

@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
+import { fetchSiteContent } from "@/lib/content";
+
 export const Route = createFileRoute("/success")({
   validateSearch: (search: Record<string, unknown>) => ({
     session_id:
       typeof search.session_id === "string" ? search.session_id : "",
   }),
+  loader: async () => {
+    const content = await fetchSiteContent();
+    return { content };
+  },
   head: () => ({
     meta: [{ title: "Order Confirmed | Katana Edge" }],
   }),
@@ -14,6 +20,9 @@ export const Route = createFileRoute("/success")({
 
 function SuccessPage() {
   const { session_id } = Route.useSearch() as { session_id: string };
+  const { content } = Route.useLoaderData();
+  const supportPhone = content["contact.support.phone"] || "+1 (316) 368-2814";
+  const supportPhoneLink = supportPhone.replace(/[^\d+]/g, "");
 
   return (
     <Layout>
@@ -70,8 +79,8 @@ function SuccessPage() {
 
           <p className="text-xs text-muted-foreground pt-4">
             Questions? Call{" "}
-            <a href="tel:+13163682814" className="text-gold hover:underline">
-              +1 (316) 368-2814
+            <a href={`tel:${supportPhoneLink}`} className="text-gold hover:underline">
+              {supportPhone}
             </a>
           </p>
         </div>

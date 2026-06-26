@@ -51,7 +51,7 @@ function AboutPage() {
               The tool should disappear.
             </h2>
             <p className="mt-6 text-muted-foreground leading-relaxed">
-              {content["about.brand.statement"] || "A great shear is one you stop noticing — until you pick up something lesser. We obsess over weight, balance, edge geometry, and pivot tension because every imperceptible detail compounds into thousands of cleaner cuts a year."}
+              {content["home.brand.statement"] || content["about.brand.statement"] || "We believe your shears are an extension of your hand. When they are balanced, sharp, and fit your style, you do better work, faster, with less fatigue. That's why we build every Katana Edge shear with surgical-grade Japanese steel and convex hand-honed blades."}
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               Every Katana Edge shear is forged from premium Japanese-grade steel, hand-honed to a convex edge, and serialized before it leaves our workshop. Made in small batches. Built to last decades.

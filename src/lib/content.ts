@@ -1,11 +1,17 @@
 import { supabase } from "./supabase";
+import { createServerFn } from "@tanstack/react-start";
 
 export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "home.hero.title": "BUILT FOR Stylers\nWHO cut TO WIN",
   "home.hero.subtitle": "Premium Japanese-inspired professional shears. Engineered for cleaner cuts, smoother blending, and effortless control. Trusted by hairstylists and barbers worldwide.",
   "home.hero.cta": "Shop Now",
   "about.brand.statement": "We believe your shears are an extension of your hand. When they are balanced, sharp, and fit your style, you do better work, faster, with less fatigue. That's why we build every Katana Edge shear with surgical-grade Japanese steel and convex hand-honed blades.",
+  "home.brand.statement": "We believe your shears are an extension of your hand. When they are balanced, sharp, and fit your style, you do better work, faster, with less fatigue. That's why we build every Katana Edge shear with surgical-grade Japanese steel and convex hand-honed blades.",
   "contact.support.email": "hello@katanaedge.com",
+  "contact.support.phone": "+1 (316) 368-2814",
+  "contact.calendly.url": "",
+  "home.sale_banner.text": "",
+  "home.announcement.text": "INSPIRED BY SEKI • TRUSTED WORLDWIDE • PRECISION WITHOUT COMPROMISE",
   "seo.title": "Katana Edge — Premium Professional Shears & Scissors",
   "seo.description": "Premium Japanese-inspired professional cutting shears. Engineered for cleaner cuts, smoother blending, and effortless control. Trusted by hairstylists and barbers worldwide.",
 };
@@ -36,74 +42,113 @@ export const DEFAULT_REVIEWS = [
   { name: "Hannah Chen", role: "Stylist · Vancouver", quote: "Worth every penny. My wrist no longer aches after a 10-hour day.", rating: 5, avatar: "https://images.unsplash.com/photo-1534751516642-a131ffd10b7c?auto=format&fit=crop&q=80&w=120&h=120" },
 ];
 
-export async function fetchSiteContent(): Promise<Record<string, string>> {
-  try {
-    const { data, error } = await supabase
-      .from("site_content")
-      .select("key, value");
+export const fetchSiteContent = createServerFn({ method: "GET" })
+  .handler(async (): Promise<Record<string, string>> => {
+    let content = { ...DEFAULT_SITE_CONTENT };
+    
+    // 1. Try reading from Supabase using the server client to bypass RLS policies
+    try {
+      const { createSupabaseServerClient } = await import("./supabase.server");
+      const supabaseServer = createSupabaseServerClient();
+      const { data, error } = await supabaseServer
+        .from("site_content")
+        .select("key, value");
 
-    if (error || !data) {
-      return DEFAULT_SITE_CONTENT;
+      if (!error && data) {
+        data.forEach((row) => {
+          content[row.key] = row.value;
+        });
+      } else if (error) {
+        console.warn("Supabase fetch returned error in fetchSiteContent:", error);
+      }
+    } catch (err) {
+      console.warn("Supabase fetch failed in fetchSiteContent server function:", err);
     }
 
-    const content = { ...DEFAULT_SITE_CONTENT };
-    data.forEach((row) => {
-      content[row.key] = row.value;
-    });
+    // 2. Override/merge with local site-content.json if exists
+    try {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const filePath = path.resolve(process.cwd(), "src/lib/site-content.json");
+      if (fs.existsSync(filePath)) {
+        const localContent = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        content = { ...content, ...localContent };
+      }
+    } catch (err) {
+      console.error("Error reading site-content.json server side:", err);
+    }
 
     return content;
-  } catch {
-    return DEFAULT_SITE_CONTENT;
-  }
-}
+  });
 
-export async function fetchFaqs(): Promise<{ question: string; answer: string }[]> {
-  try {
-    const { data, error } = await supabase
-      .from("faqs")
-      .select("question, answer")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true });
-
-    if (error || !data || data.length === 0) {
-      return DEFAULT_FAQS.map(f => ({ question: f.q, answer: f.a }));
+export const fetchFaqs = createServerFn({ method: "GET" })
+  .handler(async (): Promise<{ question: string; answer: string }[]> => {
+    // 1. Try loading from local site-faqs.json
+    try {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const filePath = path.resolve(process.cwd(), "src/lib/site-faqs.json");
+      if (fs.existsSync(filePath)) {
+        const faqs = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        return faqs
+          .filter((f: any) => f.is_active)
+          .map((f: any) => ({ question: f.question, answer: f.answer }));
+      }
+    } catch (err) {
+      console.error("Error reading site-faqs.json:", err);
     }
 
-    return data;
-  } catch {
+    // 2. Try loading from Supabase using the server client to bypass RLS policies
+    try {
+      const { createSupabaseServerClient } = await import("./supabase.server");
+      const supabaseServer = createSupabaseServerClient();
+      const { data, error } = await supabaseServer
+        .from("faqs")
+        .select("question, answer")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        return data;
+      }
+    } catch (err) {
+      console.warn("Supabase fetch failed in fetchFaqs server function:", err);
+    }
+
+    // 3. Fall back to DEFAULT_FAQS
     return DEFAULT_FAQS.map(f => ({ question: f.q, answer: f.a }));
-  }
-}
+  });
 
-export async function fetchTestimonials(): Promise<{ name: string; role: string; quote: string; rating: number; avatar?: string }[]> {
-  try {
-    const { data, error } = await supabase
-      .from("testimonials")
-      .select("name, quote, rating, sort_order")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true });
+export const fetchTestimonials = createServerFn({ method: "GET" })
+  .handler(async (): Promise<{ name: string; role: string; quote: string; rating: number; avatar?: string }[]> => {
+    try {
+      const { createSupabaseServerClient } = await import("./supabase.server");
+      const supabaseServer = createSupabaseServerClient();
+      const { data, error } = await supabaseServer
+        .from("testimonials")
+        .select("name, quote, rating, sort_order, role, avatar_url")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
 
-    if (error || !data || data.length === 0) {
+      if (error || !data || data.length === 0) {
+        return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating, avatar: r.avatar }));
+      }
+
+      return data.map((d: any) => {
+        const match = DEFAULT_REVIEWS.find(r => r.name.toLowerCase() === d.name.toLowerCase());
+        return {
+          name: d.name,
+          role: d.role || "Verified Professional",
+          quote: d.quote,
+          rating: d.rating || 5,
+          avatar: d.avatar_url || match?.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120&h=120`
+        };
+      });
+    } catch {
       return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating, avatar: r.avatar }));
     }
+  });
 
-    // Since our database testimonials table only has name, quote, rating, sort_order,
-    // let's parse a default role or handle it gracefully. We fallback role to "Verified Professional" if null.
-    return data.map((d: any) => {
-      // Find matching default review to reuse its Unsplash avatar if possible
-      const match = DEFAULT_REVIEWS.find(r => r.name.toLowerCase() === d.name.toLowerCase());
-      return {
-        name: d.name,
-        role: d.role || "Verified Professional",
-        quote: d.quote,
-        rating: d.rating || 5,
-        avatar: match?.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120&h=120`
-      };
-    });
-  } catch {
-    return DEFAULT_REVIEWS.map(r => ({ name: r.name, role: r.role, quote: r.quote, rating: r.rating, avatar: r.avatar }));
-  }
-}
 
 export async function fetchDbProductBySlug(slug: string, fallbackProduct: any): Promise<any> {
   try {
@@ -135,6 +180,10 @@ export async function fetchDbProductBySlug(slug: string, fallbackProduct: any): 
       specs: Array.isArray(data.specs) && data.specs.length > 0 ? data.specs : fallbackProduct.specs,
       faq: Array.isArray(data.faq) && data.faq.length > 0 ? data.faq : fallbackProduct.faq,
       active: data.active !== null && data.active !== undefined ? data.active : fallbackProduct.active,
+      video: data.video_url || fallbackProduct.video,
+      video_url: data.video_url || undefined,
+      gallery_urls: data.gallery_urls || undefined,
+      availability: data.availability || undefined,
     };
   } catch {
     return fallbackProduct;
@@ -173,6 +222,10 @@ export async function fetchAllDbProducts(fallbackProducts: any[]): Promise<any[]
         specs: Array.isArray(dbProduct.specs) && dbProduct.specs.length > 0 ? dbProduct.specs : fallback.specs,
         faq: Array.isArray(dbProduct.faq) && dbProduct.faq.length > 0 ? dbProduct.faq : fallback.faq,
         active: dbProduct.active !== null && dbProduct.active !== undefined ? dbProduct.active : fallback.active,
+        video: dbProduct.video_url || fallback.video,
+        video_url: dbProduct.video_url || undefined,
+        gallery_urls: dbProduct.gallery_urls || undefined,
+        availability: dbProduct.availability || undefined,
       };
     });
   } catch {
