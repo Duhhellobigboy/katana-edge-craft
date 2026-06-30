@@ -158,6 +158,14 @@ function splitLongDescription(text: string): string[] {
   return [trimmed];
 }
 
+function normalizeVideoUrl(url: string): string {
+  if (!url) return "";
+  if (url.includes("dropbox.com")) {
+    return url.replace(/dl=[01]/, "raw=1");
+  }
+  return url;
+}
+
 function ProductPage() {
   const { product, allProducts } = Route.useLoaderData() as { product: Product; allProducts: Product[] };
   const [qty, setQty] = useState(1);
@@ -216,7 +224,7 @@ function ProductPage() {
     ...uniqueGallery.map(
       (src): GallerySelection => ({ type: "image", src })
     ),
-    ...(product.video ? [{ type: "video" as const, src: product.video }] : []),
+    ...(product.video ? [{ type: "video" as const, src: normalizeVideoUrl(product.video) }] : []),
   ];
 
   const [selectedGalleryIndex, setSelectedGalleryIndex] = useState(0);
