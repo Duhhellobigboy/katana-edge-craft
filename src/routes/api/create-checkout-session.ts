@@ -99,7 +99,7 @@ export const Route = createFileRoute("/api/create-checkout-session")({
 
           const stripe = getStripeClient();
           await validateSandboxAccount(stripe);
-          const siteUrl = getSiteUrl();
+          const siteUrl = new URL(request.url).origin || getSiteUrl();
           const { createSupabaseServerClient } = await import("@/lib/supabase.server");
           const supabase = createSupabaseServerClient();
 
@@ -110,7 +110,29 @@ export const Route = createFileRoute("/api/create-checkout-session")({
               let stripePriceId = "";
               let parentName = "";
               let stripeProductId = "";
-              const prodKey = item.productKey || (item.variantKey ? item.variantKey.split("_")[0] : "");
+              let prodKey = item.productKey || "";
+              if (!prodKey && item.variantKey) {
+                const sortedKeys = [
+                  "bamboo_thinning",
+                  "double_swivel",
+                  "microslit",
+                  "fujisan",
+                  "thunder",
+                  "naruto",
+                  "karakuri",
+                  "bamboo",
+                ];
+                for (const k of sortedKeys) {
+                  if (item.variantKey.startsWith(k)) {
+                    prodKey = k;
+                    break;
+                  }
+                }
+              }
+
+              if (!prodKey || !isCheckoutProductKey(prodKey)) {
+                throw new Error(`Invalid or missing product key: ${prodKey || "unknown"}`);
+              }
 
               // 1. Resolve Stripe Price ID from environment variables first (Source of Truth)
               const PRODUCT_ENV_VAR_MAPPING: Record<string, string> = {
@@ -124,12 +146,17 @@ export const Route = createFileRoute("/api/create-checkout-session")({
                 bamboo_thinning: "STRIPE_BAMBOO_THINNING_PRICE_ID",
               };
 
-              const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey] || "";
-              const envPriceId = envVarName ? process.env[envVarName] : undefined;
-
-              if (envPriceId) {
-                stripePriceId = envPriceId;
+              const envVarName = PRODUCT_ENV_VAR_MAPPING[prodKey];
+              if (!envVarName) {
+                throw new Error(`No environment variable mapping defined for product: ${prodKey}`);
               }
+
+              const envPriceId = process.env[envVarName];
+              if (!envPriceId) {
+                throw new Error(`Missing Stripe price ID environment variable: ${envVarName} for product ${prodKey}`);
+              }
+
+              stripePriceId = envPriceId;
 
               // 2. Resolve variant details from Supabase if possible (timeout after 2s)
               const isLegacyKey = item.variantKey === "microslit" || item.variantKey === "fujisan";
@@ -217,8 +244,8 @@ export const Route = createFileRoute("/api/create-checkout-session")({
 
               // 3. Resolve fallback parentName and stripeProductId from codebase configuration if database lookup was skipped or failed
               const isProductKeyValid = isCheckoutProductKey(prodKey);
-              if (!parentName && (isLegacyKey || isProductKeyValid)) {
-                const fallbackProduct = resolveCheckoutProduct(isProductKeyValid ? (prodKey as any) : "microslit");
+              if (!parentName && isProductKeyValid) {
+                const fallbackProduct = resolveCheckoutProduct(prodKey);
                 stripeProductId = fallbackProduct.productId || "";
                 parentName = fallbackProduct.name;
               }
@@ -228,8 +255,7 @@ export const Route = createFileRoute("/api/create-checkout-session")({
 
               // 4. Absolute fallback if still empty
               if (!stripePriceId) {
-                console.warn(`[Checkout] Missing Stripe Price ID for ${prodKey}. Using default sandbox fallback.`);
-                stripePriceId = process.env.STRIPE_MICROSLIT_PRICE_ID || "price_1TkKMEEPlkX6ZtPCfhVwYwXK";
+                throw new Error(`Missing Stripe Price ID for product: ${prodKey}`);
               }
 
               return {

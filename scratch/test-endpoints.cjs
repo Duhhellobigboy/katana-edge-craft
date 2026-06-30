@@ -1,62 +1,95 @@
 const checkoutSessionId = "44444444-4444-4444-4444-444444444444"; // mock UUID
 
-async function testEndpoints() {
+async function runTests() {
   const url = "http://localhost:8080/api/create-checkout-session";
-  
-  console.log("Testing create-checkout-session API endpoint...");
+  console.log("Starting Stripe mapping verification tests...");
 
-  // Test Case 1: Reject unknown variant key
+  // Test Case 1: Valid product key (thunder)
   try {
-    const res1 = await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         checkoutSessionId,
-        items: [{
-          productKey: "thunder",
-          variantKey: "thunder_invalid",
-          quantity: 1
-        }],
+        items: [{ productKey: "thunder", quantity: 1 }],
         fullName: "John Doe",
         email: "john@example.com",
         phone: "555-555-5555"
       })
     });
-    const data1 = await res1.json();
-    console.log("\nTest Case 1 (Reject unknown variant):");
-    console.log("Status:", res1.status);
-    console.log("Response:", data1);
+    const data = await res.json();
+    console.log("\nTest Case 1 (Valid productKey: thunder):");
+    console.log("Status:", res.status);
+    console.log("URL generated:", Boolean(data.url));
+    if (!data.url) console.log("Response details:", data);
   } catch (e) {
-    console.error("Test Case 1 failed to execute fetch:", e.message);
+    console.error("Test Case 1 failed:", e.message);
   }
 
-  // Test Case 2: Accept legacy Fujisan key (should resolve via env fallback even if DB table is missing)
+  // Test Case 2: Invalid product key (unknown)
   try {
-    const res2 = await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         checkoutSessionId,
-        items: [{
-          productKey: "fujisan",
-          variantKey: "fujisan",
-          quantity: 1
-        }],
+        items: [{ productKey: "unknown_product_key", quantity: 1 }],
         fullName: "John Doe",
         email: "john@example.com",
         phone: "555-555-5555"
       })
     });
-    const data2 = await res2.json();
-    console.log("\nTest Case 2 (Accept legacy Fujisan):");
-    console.log("Status:", res2.status);
-    console.log("Response URL exists:", Boolean(data2.url));
-    if (!data2.url) {
-      console.log("Response details:", data2);
-    }
+    const data = await res.json();
+    console.log("\nTest Case 2 (Invalid productKey: unknown_product_key):");
+    console.log("Status:", res.status);
+    console.log("Response:", data);
   } catch (e) {
-    console.error("Test Case 2 failed to execute fetch:", e.message);
+    console.error("Test Case 2 failed:", e.message);
+  }
+
+  // Test Case 3: Empty product key but variantKey starts with bamboo_thinning
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        checkoutSessionId,
+        items: [{ productKey: "", variantKey: "bamboo_thinning_60_classic", quantity: 1 }],
+        fullName: "John Doe",
+        email: "john@example.com",
+        phone: "555-555-5555"
+      })
+    });
+    const data = await res.json();
+    console.log("\nTest Case 3 (Resolve bamboo_thinning from variantKey):");
+    console.log("Status:", res.status);
+    console.log("URL generated:", Boolean(data.url));
+    if (!data.url) console.log("Response details:", data);
+  } catch (e) {
+    console.error("Test Case 3 failed:", e.message);
+  }
+
+  // Test Case 4: Empty product key but variantKey starts with bamboo
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        checkoutSessionId,
+        items: [{ productKey: "", variantKey: "bamboo_60_classic", quantity: 1 }],
+        fullName: "John Doe",
+        email: "john@example.com",
+        phone: "555-555-5555"
+      })
+    });
+    const data = await res.json();
+    console.log("\nTest Case 4 (Resolve bamboo from variantKey):");
+    console.log("Status:", res.status);
+    console.log("URL generated:", Boolean(data.url));
+    if (!data.url) console.log("Response details:", data);
+  } catch (e) {
+    console.error("Test Case 4 failed:", e.message);
   }
 }
 
-testEndpoints();
+runTests();

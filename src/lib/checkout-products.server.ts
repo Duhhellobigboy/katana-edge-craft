@@ -72,8 +72,7 @@ export function isCheckoutProductKey(value: string): value is CheckoutProductKey
 
 export function resolveCheckoutProduct(productKey: CheckoutProductKey) {
   const product = getProducts()[productKey];
-  // Price ID fallback can be empty for Coming Soon items, but throws if we attempt active checkout on them
-  if (!product.priceId && (productKey === "microslit" || productKey === "fujisan")) {
+  if (!product.priceId) {
     throw new Error(`Missing Stripe price ID env var for product: ${productKey}`);
   }
   return product;
